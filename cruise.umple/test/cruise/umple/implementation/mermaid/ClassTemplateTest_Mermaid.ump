@@ -1,0 +1,6 @@
+generate MermaidClassDiagram;
+
+class NewClass
+{
+  String name;
+}

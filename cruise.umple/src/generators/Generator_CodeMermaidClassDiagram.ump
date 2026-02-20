@@ -1,0 +1,119 @@
+/*
+Copyright: All contributers to the Umple Project
+This file is made available subject to the open source license found at:
+https://umple.org/license
+*/
+
+namespace cruise.umple.compiler;
+
+class MermaidClassDiagramGenerator
+{
+  isA CodeGeneratorWithSubptions;
+  depend java.io.*;
+  depend java.util.*;
+  depend cruise.umple.util.*;
+  depend cruise.umple.compiler.exceptions.*;
+
+  UmpleModel model = null;
+  String outputPath = "";
+
+  public void generate()
+  {
+    StringBuilder mermaid = new StringBuilder();
+    mermaid.append("classDiagram\n");
+    
+    // Add Classes and Attributes/Methods
+    for (UmpleClass aClass : model.getUmpleClasses()) {
+      mermaid.append("  class " + aClass.getName() + " {\n");
+      
+      // Attributes
+      for (Attribute aAttribute : aClass.getAttributes()) {
+        String type = aAttribute.getType() == null ? "String" : aAttribute.getType();
+        mermaid.append("    " + type + " " + aAttribute.getName() + "\n");
+      }
+      
+      // Methods
+      for (Method aMethod : aClass.getMethods()) {
+        String type = aMethod.getType() == null ? "void" : aMethod.getType();
+        mermaid.append("    " + type + " " + aMethod.getName() + "()\n");
+      }
+      mermaid.append("  }\n");
+
+      // Inheritance
+      if (aClass.getExtendsClass() != null) {
+        mermaid.append("  " + aClass.getExtendsClass().getName() + " <|-- " + aClass.getName() + "\n");
+      }
+
+      // Interfaces
+      for (UmpleInterface uInterface : aClass.getParentInterface()) {
+        mermaid.append("  " + uInterface.getName() + " <|.. " + aClass.getName() + "\n");
+      }
+    }
+
+    // Add Interfaces
+    for (UmpleInterface uInterface : model.getUmpleInterfaces()) {
+      mermaid.append("  class " + uInterface.getName() + " {\n");
+      mermaid.append("    <<interface>>\n");
+      for (Method aMethod : uInterface.getMethods()) {
+        String type = aMethod.getType() == null ? "void" : aMethod.getType();
+        mermaid.append("    " + type + " " + aMethod.getName() + "()\n");
+      }
+      mermaid.append("  }\n");
+      // Interface inheritance
+      for (UmpleInterface parentInterface : uInterface.getExtendsInterface()) {
+        mermaid.append("  " + parentInterface.getName() + " <|-- " + uInterface.getName() + "\n");
+      }
+    }
+
+    // Add Associations
+    for (Association association : model.getAssociations()) {
+      AssociationEnd end1 = association.getEnd(0);
+      AssociationEnd end2 = association.getEnd(1);
+      
+      String mult1 = "\"" + end1.getMultiplicity().getParserable() + "\"";
+      String mult2 = "\"" + end2.getMultiplicity().getParserable() + "\"";
+
+      String className1 = end1.getClassName();
+      String className2 = end2.getClassName();
+      
+      String arrow = "--";
+      if (association.getIsLeftNavigable() && !association.getIsRightNavigable()) {
+         arrow = "<--";
+      } else if (!association.getIsLeftNavigable() && association.getIsRightNavigable()) {
+         arrow = "-->";
+      }
+
+      String role = "";
+      if (end2.getRoleName() != null && !end2.getRoleName().equals("")) {
+        role = " : " + end2.getRoleName();
+      } else if (end1.getRoleName() != null && !end1.getRoleName().equals("")) {
+        role = " : " + end1.getRoleName();
+      }
+
+      mermaid.append(StringFormatter.format("  {0} {1} {2} {3} {4}{5}\n", 
+          className1, mult1, arrow, mult2, className2, role));
+    }
+
+    model.setCode(mermaid.toString());
+    writeModel();
+  }
+
+  private void writeModel()
+  {
+    try
+    {
+      String path = model.getUmpleFile().getPath();
+      File file = new File(path);
+      file.mkdirs();
+      String modelFilename = path + File.separator + model.getUmpleFile().getSimpleFileName() + "_classDiagram.mermaid";
+      BufferedWriter bw = new BufferedWriter(new FileWriter(modelFilename));
+      bw.write(model.getCode());
+      bw.flush();
+      bw.close();
+    }
+    catch (Exception e)
+    {
+      throw new UmpleCompilerException("There was a problem with generating Mermaid class diagram code." + e, e);
+    }
+  }
+}
