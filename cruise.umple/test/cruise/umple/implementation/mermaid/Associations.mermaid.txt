@@ -1,0 +1,39 @@
+classDiagram
+  class Course {
+    Integer minimumNumberOfStudents()
+    Boolean isNumberOfStudentsValid()
+    Boolean setStudents()
+    Integer numberOfStudents()
+    Boolean hasStudents()
+    Boolean addStudent()
+    Boolean removeStudent()
+    Integer indexOfStudent()
+    Boolean addStudentAt()
+    Boolean addOrMoveStudentAt()
+    Student getStudent()
+    Student[] getStudents()
+  }
+  class Student {
+    Integer minimumNumberOfCourses()
+    Integer numberOfCourses()
+    Boolean hasCourses()
+    Boolean addCourse()
+    Boolean removeCourse()
+    Integer indexOfCourse()
+    Boolean addCourseAt()
+    Boolean addOrMoveCourseAt()
+    Course getCourse()
+    Course[] getCourses()
+    Student[] getMentees()
+    Student getMentee()
+    Boolean hasMentees()
+    Integer indexOfMentee()
+    Integer numberOfMentees()
+    Student[] getStudents()
+    Student getStudent()
+    Boolean hasStudents()
+    Integer indexOfStudent()
+    Integer numberOfStudents()
+  }
+  Student "1..*" -- "*" Course : courses
+  Student "0..1" --> "*" Student : mentees

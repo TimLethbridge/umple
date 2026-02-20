@@ -1,0 +1,16 @@
+classDiagram
+  class Foo {
+    String testAttribute1
+    String testAttribute2
+    String testAttribute3
+    String testAttribute4
+    String getTestAttribute1()
+    Boolean setTestAttribute1()
+    String getTestAttribute2()
+    Boolean setTestAttribute2()
+    String getTestAttribute3()
+    Boolean setTestAttribute3()
+    String getTestAttribute4()
+    Boolean setTestAttribute4()
+    public Foo()
+  }

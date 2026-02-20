@@ -1,7 +1,7 @@
 classDiagram
-  class NewClass {
+  class Foo {
     String name
     String getName()
     Boolean setName()
-    public NewClass()
+    public Foo()
   }

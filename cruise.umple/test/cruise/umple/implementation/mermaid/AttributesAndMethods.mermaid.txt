@@ -1,0 +1,11 @@
+classDiagram
+  class Student {
+    Integer id
+    String name
+    Integer getId()
+    Boolean setId()
+    String getName()
+    Boolean setName()
+    public Student()
+    void study()
+  }

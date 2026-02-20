@@ -1,0 +1,7 @@
+classDiagram
+  class Foo {
+    String bar
+    String getBar()
+    Boolean setBar()
+    public Foo()
+  }

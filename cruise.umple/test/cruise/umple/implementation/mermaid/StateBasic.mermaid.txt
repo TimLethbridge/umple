@@ -1,0 +1,8 @@
+stateDiagram-v2
+  state "Class Light" as Class_Light {
+    state "On" as On
+    state "Off" as Off
+    [*] --> On
+    On --> Off : turnOff
+    Off --> On : turnOn
+  }

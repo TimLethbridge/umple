@@ -1,0 +1,6 @@
+classDiagram
+  class Student {
+    String grade
+    String getGrade()
+    Boolean setGrade()
+  }

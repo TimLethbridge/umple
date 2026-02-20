@@ -1,0 +1,18 @@
+classDiagram
+  class Teacher {
+    Integer minimumNumberOfMyStudents()
+    Integer numberOfMyStudents()
+    Boolean hasMyStudents()
+    Boolean addMyStudent()
+    Boolean removeMyStudent()
+    Integer indexOfMyStudent()
+    Boolean addMyStudentAt()
+    Boolean addOrMoveMyStudentAt()
+    Person getMyStudent()
+    Person[] getMyStudents()
+  }
+  class Person {
+    Teacher getTeacher()
+    Boolean setTeacher()
+  }
+  Teacher "1" -- "*" Person : myStudents

@@ -1,0 +1,53 @@
+classDiagram
+  class Mentor {
+    String name
+    String getName()
+    Boolean setName()
+    public Mentor()
+    Student getStudent()
+    Boolean hasStudent()
+    Boolean setStudent()
+  }
+  class Student {
+    String number
+    String getNumber()
+    Boolean setNumber()
+    public Student()
+    Integer minimumNumberOfMentors()
+    Boolean isNumberOfMentorsValid()
+    Boolean setMentors()
+    Integer numberOfMentors()
+    Boolean hasMentors()
+    Boolean addMentor()
+    Boolean removeMentor()
+    Integer indexOfMentor()
+    Boolean addMentorAt()
+    Boolean addOrMoveMentorAt()
+    Mentor getMentor()
+    Mentor[] getMentors()
+    Mentor addMentor()
+    Integer minimumNumberOfCourses()
+    Integer numberOfCourses()
+    Boolean hasCourses()
+    Boolean addCourse()
+    Boolean removeCourse()
+    Integer indexOfCourse()
+    Boolean addCourseAt()
+    Boolean addOrMoveCourseAt()
+    Course getCourse()
+    Course[] getCourses()
+  }
+  class Course {
+    Integer minimumNumberOfStudents()
+    Integer numberOfStudents()
+    Boolean hasStudents()
+    Boolean addStudent()
+    Boolean removeStudent()
+    Integer indexOfStudent()
+    Boolean addStudentAt()
+    Boolean addOrMoveStudentAt()
+    Student getStudent()
+    Student[] getStudents()
+  }
+  Mentor "1..*" -- "0..1" Student : student
+  Student "*" -- "*" Course : courses

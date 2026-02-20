@@ -37,7 +37,7 @@ class MermaidStateDiagramGenerator
     } else {
       for (UmpleClass uClass : model.getUmpleClasses()) {
         if (uClass.getStateMachines().size() > 0) {
-          mermaid.append("  state \"Class " + uClass.getName() + "\" as " + uClass.getName() + " {\n");
+          mermaid.append("  state \"Class " + uClass.getName() + "\" as Class_" + uClass.getName() + " {\n");
           for (StateMachine sm : uClass.getStateMachines()) {
             generateStateMachine(sm, mermaid, "    ");
           }

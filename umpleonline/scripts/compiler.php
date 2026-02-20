@@ -419,15 +419,37 @@ else if (isset($_REQUEST["umpleCode"]))
       $archivelink = $workDir->makePermalink($language.'FromUmple.zip');
       echo "<a href=\"$archivelink\" class=\"zipDownloadLink\" title=\"Download the generated code as a zip file. You can then unzip the result, compile it and run it on your own computer.\">Download the following Papyrus project as a zip file</a >";
     }
-    elseif (in_array($language, array("MermaidClassDiagram", "MermaidStateDiagram"))) {
-      executeCommand("java -jar umplesync.jar -generate {$language} {$filename} 2> {$errorFilename}");
-      
-      $ext = $language == "MermaidClassDiagram" ? "_classDiagram.mermaid" : "_stateDiagram.mermaid";
-      $generatedFilename = str_replace('.ump', $ext, $filename);
-      if (file_exists($generatedFilename)) {
-        $sourceCode = file_get_contents($generatedFilename);
+    elseif (in_array($language, array("Mermaid", "MermaidClassDiagram", "MermaidStateDiagram"))) {
+      if ($language == "Mermaid") {
+        executeCommand("java -jar umplesync.jar -generate MermaidClassDiagram {$filename} 2> {$errorFilename}");
+        executeCommand("java -jar umplesync.jar -generate MermaidStateDiagram {$filename} 2>> {$errorFilename}");
+
+        $classFilename = str_replace('.ump', '_classDiagram.mermaid', $filename);
+        $stateFilename = str_replace('.ump', '_stateDiagram.mermaid', $filename);
+
+        $sections = array();
+        if (file_exists($classFilename)) {
+          $sections[] = "%% Mermaid Class Diagram\n" . file_get_contents($classFilename);
+        }
+        if (file_exists($stateFilename)) {
+          $sections[] = "%% Mermaid State Diagram\n" . file_get_contents($stateFilename);
+        }
+
+        if (count($sections) > 0) {
+          $sourceCode = implode("\n\n", $sections);
+        } else {
+          $sourceCode = "Error generating Mermaid diagrams.";
+        }
       } else {
-        $sourceCode = "Error generating Mermaid diagram.";
+        executeCommand("java -jar umplesync.jar -generate {$language} {$filename} 2> {$errorFilename}");
+
+        $ext = $language == "MermaidClassDiagram" ? "_classDiagram.mermaid" : "_stateDiagram.mermaid";
+        $generatedFilename = str_replace('.ump', $ext, $filename);
+        if (file_exists($generatedFilename)) {
+          $sourceCode = file_get_contents($generatedFilename);
+        } else {
+          $sourceCode = "Error generating Mermaid diagram.";
+        }
       }
     }
     else {

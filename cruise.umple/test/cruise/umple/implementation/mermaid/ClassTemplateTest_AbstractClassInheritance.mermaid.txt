@@ -1,0 +1,38 @@
+classDiagram
+  class Person {
+    String name
+    int age
+    String getName()
+    Boolean setName()
+    Integer getAge()
+    Boolean setAge()
+    public Person()
+  }
+  class Student {
+    int studentID
+    Integer getStudentID()
+    Boolean setStudentID()
+    public Student()
+    Teacher getTeacher()
+    Boolean setTeacher()
+  }
+  Person <|-- Student
+  class Teacher {
+    String position
+    String getPosition()
+    Boolean setPosition()
+    public Teacher()
+    Integer minimumNumberOfStudents()
+    Integer numberOfStudents()
+    Boolean hasStudents()
+    Boolean addStudent()
+    Boolean removeStudent()
+    Integer indexOfStudent()
+    Boolean addStudentAt()
+    Boolean addOrMoveStudentAt()
+    Student getStudent()
+    Student[] getStudents()
+    Student addStudent()
+  }
+  Person <|-- Teacher
+  Teacher "1" -- "*" Student : students

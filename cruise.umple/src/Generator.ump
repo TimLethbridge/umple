@@ -156,7 +156,6 @@ mixset UmpleModelWalkerGenerator{ use generators/Generator_UmpleModelWalker.ump;
 mixset CodeAnalysisGenerator{ use generators/Generator_CodeAnalysis.ump;}
 mixset PlainRequirementsDocGenerator{ use generators/Generator_CodePlainRequirementsDoc.ump; }
 mixset UmpleAnnotaiveToCompositionGenerator { use generators/Generator_CodeAnnotaiveToComposition.ump; }
-//End
-
 mixset MermaidClassDiagramGenerator{ use generators/Generator_CodeMermaidClassDiagram.ump; }
 mixset MermaidStateDiagramGenerator{ use generators/Generator_CodeMermaidStateDiagram.ump; }
+//End

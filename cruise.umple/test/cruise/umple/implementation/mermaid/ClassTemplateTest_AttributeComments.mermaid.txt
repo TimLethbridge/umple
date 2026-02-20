@@ -1,0 +1,7 @@
+classDiagram
+  class Student {
+    String a
+    String b
+    int c
+    Integer getC()
+  }
