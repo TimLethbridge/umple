@@ -12,7 +12,8 @@ public class MermaidTemplateTest extends TemplateTest
   public void setUp()
   {
     super.setUp();
-    language = "MermaidClassDiagram";
+    language = "Mermaid";
+    suboptions = new String[] {"class"};
     languagePath = "mermaid";
   }
   

@@ -1,13 +1,7 @@
 classDiagram
   class Token {
     Position p
-    Position getP()
-    Boolean setP()
-    public Token()
   }
   class Position {
     Integer lineNumber
-    Integer getLineNumber()
-    Boolean setLineNumber()
-    public Position()
   }

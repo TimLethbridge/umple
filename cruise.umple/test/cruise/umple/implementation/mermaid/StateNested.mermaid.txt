@@ -1,17 +1,17 @@
 stateDiagram-v2
   state "Class Microwave" as Class_Microwave {
-    state "Idle" as Idle
-    state "Cooking" as Cooking {
-      state "power" as Cooking_power {
-        state "High" as Cooking_power_High
-        state "Low" as Cooking_power_Low
-        [*] --> Cooking_power_High
-        Cooking_power_High --> Cooking_power_Low : toLow
-        Cooking_power_Low --> Cooking_power_High : toHigh
+    state "Idle" as Microwave_mode_Idle
+    state "Cooking" as Microwave_mode_Cooking {
+      state "power" as Microwave_modeCooking_Cooking_power {
+        state "High" as Microwave_modeCookingPower_Cooking_power_High
+        state "Low" as Microwave_modeCookingPower_Cooking_power_Low
+        [*] --> Microwave_modeCookingPower_Cooking_power_High
+        Microwave_modeCookingPower_Cooking_power_High --> Microwave_modeCookingPower_Cooking_power_Low : toLow
+        Microwave_modeCookingPower_Cooking_power_Low --> Microwave_modeCookingPower_Cooking_power_High : toHigh
       }
-      [*] --> Cooking_power
+      [*] --> Microwave_modeCooking_Cooking_power
     }
-    [*] --> Idle
-    Idle --> Cooking : turnOn
-    Cooking --> Idle : turnOff
+    [*] --> Microwave_mode_Idle
+    Microwave_mode_Idle --> Microwave_mode_Cooking : turnOn
+    Microwave_mode_Cooking --> Microwave_mode_Idle : turnOff
   }

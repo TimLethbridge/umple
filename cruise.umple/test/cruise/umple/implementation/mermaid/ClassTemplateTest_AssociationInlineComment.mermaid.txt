@@ -1,19 +1,6 @@
 classDiagram
   class Foo {
-    Integer minimumNumberOfBars()
-    Integer numberOfBars()
-    Boolean hasBars()
-    Boolean addBar()
-    Boolean removeBar()
-    Integer indexOfBar()
-    Boolean addBarAt()
-    Boolean addOrMoveBarAt()
-    Bar getBar()
-    Bar[] getBars()
-    Bar addBar()
   }
   class Bar {
-    Foo getFoo()
-    Boolean setFoo()
   }
   Foo "1" -- "*" Bar : bars

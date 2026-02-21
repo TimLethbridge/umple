@@ -12,7 +12,8 @@ public class MermaidStateDiagramTemplateTest extends TemplateTest
   public void setUp()
   {
     super.setUp();
-    language = "MermaidStateDiagram";
+    language = "Mermaid";
+    suboptions = new String[] {"state"};
     languagePath = "mermaid";
   }
   
@@ -22,6 +23,7 @@ public class MermaidStateDiagramTemplateTest extends TemplateTest
     super.tearDown();
     SampleFileWriter.destroy(pathToInput + "/mermaid/StateBasic_stateDiagram.mermaid");
     SampleFileWriter.destroy(pathToInput + "/mermaid/StateNested_stateDiagram.mermaid");
+    SampleFileWriter.destroy(pathToInput + "/mermaid/StateMachineScopeCollision_stateDiagram.mermaid");
   }
   
   @Test
@@ -34,5 +36,11 @@ public class MermaidStateDiagramTemplateTest extends TemplateTest
   public void StateNested()
   {
     assertUmpleTemplateFor("mermaid/StateNested.ump", "mermaid/StateNested.mermaid.txt");
+  }
+
+  @Test
+  public void StateMachineScopeCollision()
+  {
+    assertUmpleTemplateFor("mermaid/StateMachineScopeCollision.ump", "mermaid/StateMachineScopeCollision.mermaid.txt");
   }
 }

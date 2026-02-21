@@ -3,5 +3,4 @@ classDiagram
     String a
     String b
     int c
-    Integer getC()
   }

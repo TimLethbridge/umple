@@ -1,65 +1,13 @@
 classDiagram
   class Foo {
-    Integer minimumNumberOfBar1s()
-    Integer numberOfBar1s()
-    Boolean hasBar1s()
-    Boolean addBar1()
-    Boolean removeBar1()
-    Integer indexOfBar1()
-    Boolean addBar1At()
-    Boolean addOrMoveBar1At()
-    Bar1 getBar1()
-    Bar1[] getBar1s()
-    Bar1 addBar1()
-    Integer minimumNumberOfBar2s()
-    Integer numberOfBar2s()
-    Boolean hasBar2s()
-    Boolean addBar2()
-    Boolean removeBar2()
-    Integer indexOfBar2()
-    Boolean addBar2At()
-    Boolean addOrMoveBar2At()
-    Bar2 getBar2()
-    Bar2[] getBar2s()
-    Bar2 addBar2()
-    Integer minimumNumberOfBar3s()
-    Integer numberOfBar3s()
-    Boolean hasBar3s()
-    Boolean addBar3()
-    Boolean removeBar3()
-    Integer indexOfBar3()
-    Boolean addBar3At()
-    Boolean addOrMoveBar3At()
-    Bar3 getBar3()
-    Bar3[] getBar3s()
-    Bar3 addBar3()
-    Integer minimumNumberOfBar4s()
-    Integer numberOfBar4s()
-    Boolean hasBar4s()
-    Boolean addBar4()
-    Boolean removeBar4()
-    Integer indexOfBar4()
-    Boolean addBar4At()
-    Boolean addOrMoveBar4At()
-    Bar4 getBar4()
-    Bar4[] getBar4s()
-    Bar4 addBar4()
   }
   class Bar1 {
-    Foo getFoo()
-    Boolean setFoo()
   }
   class Bar2 {
-    Foo getFoo()
-    Boolean setFoo()
   }
   class Bar3 {
-    Foo getFoo()
-    Boolean setFoo()
   }
   class Bar4 {
-    Foo getFoo()
-    Boolean setFoo()
   }
   Foo "1" -- "*" Bar1 : bar1s
   Foo "1" -- "*" Bar2 : bar2s

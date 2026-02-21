@@ -2,8 +2,4 @@ classDiagram
   class Student {
     String number
     String number2
-    String getNumber()
-    public Student()
-    String getNumber2()
-    Boolean setNumber2()
   }

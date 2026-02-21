@@ -1,13 +1,6 @@
 classDiagram
   class Token {
     Position positions
-    Position getPosition()
-    Boolean addPosition()
-    Boolean removePosition()
-    Integer indexOfPosition()
-    Integer numberOfPositions()
-    Boolean hasPositions()
-    public Token()
   }
   class Position {
   }

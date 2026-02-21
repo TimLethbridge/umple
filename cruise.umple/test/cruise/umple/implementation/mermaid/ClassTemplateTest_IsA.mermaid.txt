@@ -1,17 +1,11 @@
 classDiagram
   class Mentor {
     String name
-    String getName()
-    Boolean setName()
-    public Mentor()
   }
   class SubMentor {
   }
   Mentor <|-- SubMentor
   class SubMentor2 {
     String subName
-    String getSubName()
-    Boolean setSubName()
-    public SubMentor2()
   }
   Mentor <|-- SubMentor2

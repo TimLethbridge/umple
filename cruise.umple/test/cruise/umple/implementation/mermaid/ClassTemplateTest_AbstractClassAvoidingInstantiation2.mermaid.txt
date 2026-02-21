@@ -1,19 +1,6 @@
 classDiagram
   class Teacher {
-    Integer minimumNumberOfMyFooss()
-    Integer maximumNumberOfMyFooss()
-    Integer numberOfMyFooss()
-    Boolean hasMyFooss()
-    Boolean addMyFooss()
-    Boolean removeMyFooss()
-    Integer indexOfMyFooss()
-    Boolean addMyFoossAt()
-    Boolean addOrMoveMyFoossAt()
-    Foo getMyFooss()
-    Foo[] getMyFooss()
   }
   class Foo {
-    Teacher getTeacher()
-    Boolean setTeacher()
   }
   Teacher "1" -- "0..2" Foo : myFooss

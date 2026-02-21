@@ -1,39 +1,10 @@
 classDiagram
   class Student {
-    Integer minimumNumberOfRegistrations()
-    Integer numberOfRegistrations()
-    Boolean hasRegistrations()
-    Boolean addRegistration()
-    Boolean removeRegistration()
-    Integer indexOfRegistration()
-    Boolean addRegistrationAt()
-    Boolean addOrMoveRegistrationAt()
-    Registration getRegistration()
-    Registration[] getRegistrations()
-    Registration addRegistration()
   }
   class CourseSection {
-    Integer minimumNumberOfRegistrations()
-    Integer numberOfRegistrations()
-    Boolean hasRegistrations()
-    Boolean addRegistration()
-    Boolean removeRegistration()
-    Integer indexOfRegistration()
-    Boolean addRegistrationAt()
-    Boolean addOrMoveRegistrationAt()
-    Registration getRegistration()
-    Registration[] getRegistrations()
-    Registration addRegistration()
   }
   class Registration {
     String grade
-    String getGrade()
-    Boolean setGrade()
-    public Registration()
-    Student getStudent()
-    Boolean setStudent()
-    CourseSection getCourseSection()
-    Boolean setCourseSection()
   }
   Registration "*" -- "1..1" Student : student
   Registration "*" -- "1..1" CourseSection : courseSection

@@ -324,8 +324,7 @@ function generateMenu($buttonSuffix)
             <option value=\"xml:Papyrus\">Papyrus XMI</option>
             <option value=\"yumlDiagram:yumlDiagram\">Yuml Class Diagram</option>
             <option value=\"classDiagram:classDiagram\">GraphViz Class Diagram (SVG)</option>
-            <option value=\"mermaid:MermaidClassDiagram\">Mermaid Class Diagram</option>
-            <option value=\"mermaid:MermaidStateDiagram\">Mermaid State Diagram</option>
+            <option value=\"mermaid:Mermaid\">Mermaid</option>
             <option value=\"instanceDiagram:instanceDiagram\">Instance Diagram</option>
             <option value=\"stateDiagram:stateDiagram\">State Diagram (GraphViz SVG)</option>
             <option value=\"featureDiagram:featureDiagram\">Feature Diagram (GraphViz SVG)</option>
