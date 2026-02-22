@@ -25218,18 +25218,34 @@ var cm6 = (function (exports) {
      update(update) {
        
        if (update.docChanged) {
-           
-           const newContent = update.state.doc.toString();
-           
-           if (newContent !== this.lastContent) {
-           const currentPositionofCursor = this.view.state.selection.main.head;
+            // Debug: Issue 2273: only react to user edits to avoid triggering processTyping
+            let userEdit = false;
+            if (update.transactions) {
+                userEdit = update.transactions.some(tr =>
+                (typeof Transaction !== "undefined" && tr.annotation && tr.annotation(Transaction.userEvent)) ||
 
-           this.lastContent = newContent;
+                // fallback 
+                tr.isUserEvent("input") || tr.isUserEvent("delete") || tr.isUserEvent("paste") ||
+                tr.isUserEvent("drop") || tr.isUserEvent("cut") || tr.isUserEvent("undo") ||
+                tr.isUserEvent("redo"));
+            }
 
-           debouncedProcessTyping("newEditor", false ,currentPositionofCursor); // call the debounced function
-         }
-       }
-       Action.updateLineNumberDisplay();
+            if (!userEdit) {
+                Action.updateLineNumberDisplay();
+                return;
+            }
+
+            const newContent = update.state.doc.toString();
+
+            if (newContent !== this.lastContent) {
+                const currentPositionofCursor = this.view.state.selection.main.head;
+
+                this.lastContent = newContent;
+
+                debouncedProcessTyping("newEditor", false, currentPositionofCursor);
+            }
+        }
+        Action.updateLineNumberDisplay();
      }
 
      

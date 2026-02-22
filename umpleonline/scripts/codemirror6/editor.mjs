@@ -232,12 +232,29 @@ const changeListenerPlugin = ViewPlugin.fromClass(class {
     
     if (update.docChanged) {
       // Debug: Check if the editor is updated
-      if (codemirrorDebuggerFlag)
-      console.log('Editor updated..');
-        
-        const newContent = update.state.doc.toString();
-        
-        if (newContent !== this.lastContent) {
+      if (codemirrorDebuggerFlag) console.log('Editor updated..');
+
+      // Debug: Issue 2273: only react to user edits to avoid triggering processTyping
+      let userEdit = false;
+      if (update.transactions) {
+        userEdit = update.transactions.some(tr =>
+        (typeof Transaction !== "undefined" && tr.annotation && tr.annotation(Transaction.userEvent)) ||
+
+        // fallback 
+        tr.isUserEvent("input") || tr.isUserEvent("delete") || tr.isUserEvent("paste") || 
+        tr.isUserEvent("drop") || tr.isUserEvent("cut") || tr.isUserEvent("undo") ||
+        tr.isUserEvent("redo"));
+      }
+
+      if (!userEdit) {
+        if (codemirrorDebuggerFlag) console.log("Ignored non user document change");
+        Action.updateLineNumberDisplay();
+        return;
+      }
+
+      const newContent = update.state.doc.toString();
+
+      if (newContent !== this.lastContent) {
         const currentPositionofCursor = this.view.state.selection.main.head;
 
         // Debug: Check if the content has changed
@@ -246,13 +263,14 @@ const changeListenerPlugin = ViewPlugin.fromClass(class {
           console.log('new content lenght:', newContent.length);
           console.log('old content lenght:', this.lastContent.length);
           console.warn('details:', update.changes);
-        }  
+        }
 
         this.lastContent = newContent;
 
-        debouncedProcessTyping("newEditor", false ,currentPositionofCursor); // call the debounced function
+        debouncedProcessTyping("newEditor", false, currentPositionofCursor);
       }
     }
+
     Action.updateLineNumberDisplay();
   }
 
