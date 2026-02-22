@@ -7,7 +7,7 @@
 // It also have the debounced function to process the typing in the editor
 
 import { basicSetup } from "codemirror"
-import { EditorSelection, EditorState, Text, ChangeSet, StateEffect, Compartment } from "@codemirror/state";
+import { EditorSelection, EditorState, Text, ChangeSet, StateEffect, Compartment, Annotation } from "@codemirror/state";
 import { javascript } from "@codemirror/lang-javascript"
 import { umple } from "./umple.js"
 import { EditorView, ViewPlugin, ViewUpdate, lineNumbers, keymap, Decoration } from "@codemirror/view"
@@ -21,6 +21,7 @@ const codemirrorDebuggerFlag = false;
 
 // Create a compartment for editable state
 const editableCompartment = new Compartment();
+const skipDebouncedTypingAnnotation = Annotation.define();
 
 // Code keyword highlighting style
 const myHighlightStyle = HighlightStyle.define([
@@ -232,27 +233,12 @@ const changeListenerPlugin = ViewPlugin.fromClass(class {
     
     if (update.docChanged) {
       // Debug: Check if the editor is updated
-      if (codemirrorDebuggerFlag) console.log('Editor updated..');
-
-      // Debug: Issue 2273: only react to user edits to avoid triggering processTyping
-      let userEdit = false;
-      if (update.transactions) {
-        userEdit = update.transactions.some(tr =>
-        (typeof Transaction !== "undefined" && tr.annotation && tr.annotation(Transaction.userEvent)) ||
-
-        // fallback 
-        tr.isUserEvent("input") || tr.isUserEvent("delete") || tr.isUserEvent("paste") || 
-        tr.isUserEvent("drop") || tr.isUserEvent("cut") || tr.isUserEvent("undo") ||
-        tr.isUserEvent("redo"));
-      }
-
-      if (!userEdit) {
-        if (codemirrorDebuggerFlag) console.log("Ignored non user document change");
-        Action.updateLineNumberDisplay();
-        return;
-      }
+      if (codemirrorDebuggerFlag)
+      console.log('Editor updated..');
 
       const newContent = update.state.doc.toString();
+      const shouldSkipDebouncedTyping = update.transactions.some(transaction =>
+        transaction.annotation(skipDebouncedTypingAnnotation));
 
       if (newContent !== this.lastContent) {
         const currentPositionofCursor = this.view.state.selection.main.head;
@@ -263,14 +249,16 @@ const changeListenerPlugin = ViewPlugin.fromClass(class {
           console.log('new content lenght:', newContent.length);
           console.log('old content lenght:', this.lastContent.length);
           console.warn('details:', update.changes);
+          console.log('shouldSkipDebouncedTyping:', shouldSkipDebouncedTyping);
         }
 
         this.lastContent = newContent;
 
-        debouncedProcessTyping("newEditor", false, currentPositionofCursor);
+        if (!shouldSkipDebouncedTyping) {
+          debouncedProcessTyping("newEditor", false ,currentPositionofCursor); // call the debounced function
+        }
       }
     }
-
     Action.updateLineNumberDisplay();
   }
 
@@ -282,5 +270,7 @@ export { createEditorState, createEditorView,
   EditorSelection, SearchCursor, RegExpCursor, changeListenerPlugin,
   EditorView, ViewPlugin, ViewUpdate, Text, ChangeSet, StateEffect,
   receiveUpdates, sendableUpdates, collab, getSyncedVersion, Compartment,editableCompartment,
-  prefersDarkMode, onDarkModePreferenceChange, setDarkMode, setDarkModePreference
+  prefersDarkMode, onDarkModePreferenceChange, setDarkMode, setDarkModePreference,
+  skipDebouncedTypingAnnotation,
+  skipDebouncedTypingAnnotation as programmaticChangeAnnotation
 }

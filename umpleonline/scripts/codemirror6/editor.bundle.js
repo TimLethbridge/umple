@@ -25008,6 +25008,7 @@ var cm6 = (function (exports) {
 
    // Create a compartment for editable state
    const editableCompartment = new Compartment();
+   const skipDebouncedTypingAnnotation = Annotation.define();
 
    // Code keyword highlighting style
    const myHighlightStyle = HighlightStyle.define([
@@ -25218,34 +25219,22 @@ var cm6 = (function (exports) {
      update(update) {
        
        if (update.docChanged) {
-            // Debug: Issue 2273: only react to user edits to avoid triggering processTyping
-            let userEdit = false;
-            if (update.transactions) {
-                userEdit = update.transactions.some(tr =>
-                (typeof Transaction !== "undefined" && tr.annotation && tr.annotation(Transaction.userEvent)) ||
 
-                // fallback 
-                tr.isUserEvent("input") || tr.isUserEvent("delete") || tr.isUserEvent("paste") ||
-                tr.isUserEvent("drop") || tr.isUserEvent("cut") || tr.isUserEvent("undo") ||
-                tr.isUserEvent("redo"));
-            }
+         const newContent = update.state.doc.toString();
+         const shouldSkipDebouncedTyping = update.transactions.some(transaction =>
+           transaction.annotation(skipDebouncedTypingAnnotation));
 
-            if (!userEdit) {
-                Action.updateLineNumberDisplay();
-                return;
-            }
+         if (newContent !== this.lastContent) {
+           const currentPositionofCursor = this.view.state.selection.main.head;
 
-            const newContent = update.state.doc.toString();
+           this.lastContent = newContent;
 
-            if (newContent !== this.lastContent) {
-                const currentPositionofCursor = this.view.state.selection.main.head;
-
-                this.lastContent = newContent;
-
-                debouncedProcessTyping("newEditor", false, currentPositionofCursor);
-            }
-        }
-        Action.updateLineNumberDisplay();
+           if (!shouldSkipDebouncedTyping) {
+             debouncedProcessTyping("newEditor", false ,currentPositionofCursor); // call the debounced function
+           }
+         }
+       }
+       Action.updateLineNumberDisplay();
      }
 
      
@@ -25269,10 +25258,12 @@ var cm6 = (function (exports) {
    exports.getSyncedVersion = getSyncedVersion;
    exports.onDarkModePreferenceChange = onDarkModePreferenceChange;
    exports.prefersDarkMode = prefersDarkMode;
+   exports.programmaticChangeAnnotation = skipDebouncedTypingAnnotation;
    exports.receiveUpdates = receiveUpdates;
    exports.sendableUpdates = sendableUpdates;
    exports.setDarkMode = setDarkMode;
    exports.setDarkModePreference = setDarkModePreference;
+   exports.skipDebouncedTypingAnnotation = skipDebouncedTypingAnnotation;
 
    return exports;
 
