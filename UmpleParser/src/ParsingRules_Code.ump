@@ -131,25 +131,39 @@ class ChoiceRule
     Set<Integer> keys = data.getLinenumbers().keySet();
     int offset = 0;
     int linenumber = 0;
-    int offsetend = 0;
-    int linenumberend = 0;
-    int previous = 0;
-    for(Integer key:keys)
+    /*build a line start-end map*/
+    Map<Integer,List<Integer>> lineMap=new HashMap<Integer,List<Integer>>();
+    for (Integer key:keys){
+    if (lineMap.size()==0){
+    lineMap.put(0,new ArrayList<>(List.of(key)));
+    continue;
+    }
+    int lastLineNum=lineMap.size()-1;
+    lineMap.get(lastLineNum).add(key);
+    lineMap.put(lastLineNum+1,new ArrayList<>(List.of(key)));
+    }
+    /*last line bound set*/
+    if (lineMap.size()>0)
+    lineMap.get(lineMap.size()-1).add(input.length());
+    for(Map.Entry<Integer,List<Integer>> lineData:lineMap.entrySet())
     {
-      if(key-1>=lookfor)
+      int lineStart=lineData.getValue().get(0);
+      int lineEnd=lineData.getValue().get(1);
+      if(lookfor>=lineStart&&lookfor<lineEnd)
       {
-        offset = lookfor-previous;
-        linenumber = data.getLinenumbers().get(key);        
+        offset = lookfor-lineStart;
+        linenumber = lineData.getKey()+1;
         break;
       }
-      previous = key;
     }
-    Boolean first = true;
-    if(linenumber==0)
-    {
-      linenumber = 1;
-      offset = lookfor;
-      first = true;
+    /*FALLBACK
+    the number should never be 0 or lineMap.size() in normal case
+    when in this case, follow the original fallback:set linenumber to 1
+    and print log*/
+    if (linenumber==0||linenumber==lineMap.size()+1){
+        linenumber=1;
+        offset=lookfor;
+        System.out.println("[DEBUG]Umple Parser error occured. Check UmpleParser/src/ParsingRules_Code.ump:166 and issue#2279");
     }
     return new Position(
         data.getFilename(),
