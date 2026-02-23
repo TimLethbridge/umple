@@ -6,8 +6,8 @@
 // Explains Umple code with follow-up conversation support
 
 const AiExplain = {
-  // Conversation history for follow-up context
-  conversationHistory: [],
+  // Chat context for follow-up conversation
+  chatContext: null,
 
   // Active stream handle (for abort)
   activeStream: null,
@@ -31,7 +31,7 @@ const AiExplain = {
    * Reset conversation history
    */
   resetConversation() {
-    this.conversationHistory = [];
+    this.chatContext = null;
     this.updateExplainButtonIndicator();
   },
 
@@ -40,7 +40,7 @@ const AiExplain = {
    * @returns {boolean}
    */
   hasOngoingConversation() {
-    return this.conversationHistory.length > 0;
+    return !!(this.chatContext && Array.isArray(this.chatContext.messages) && this.chatContext.messages.length > 0);
   },
 
   /**
@@ -102,23 +102,6 @@ const AiExplain = {
   },
 
   /**
-   * Add message to conversation history
-   * @param {string} role - Role ('user' or 'assistant')
-   * @param {string} content - Message content
-   */
-  addToHistory(role, content) {
-    this.conversationHistory.push({ role, content });
-
-    // Keep only last 10 messages to manage token usage
-    if (this.conversationHistory.length > 10) {
-      this.conversationHistory = this.conversationHistory.slice(-10);
-    }
-
-    // Update the indicator on the Explain button
-    this.updateExplainButtonIndicator();
-  },
-
-  /**
    * Show the explain dialog and start explaining immediately
    */
   async showDialog() {
@@ -154,14 +137,14 @@ const AiExplain = {
     }
 
     // Create and show dialog with loading state
-    this.createDialog();
+    const dialog = this.createDialog();
 
     // Only reset conversation if there isn't one already
     // (Allows resuming minimized conversations)
     if (!this.hasOngoingConversation()) {
       this.resetConversation();
     }
-    await this.performExplanation(umpleCode);
+    await this.performExplanation(dialog, umpleCode);
   },
 
   /**
@@ -202,6 +185,7 @@ const AiExplain = {
     btnMinimize.className = "ai-explain-minimize-btn";
     btnMinimize.innerHTML = "&#8211;"; // En dash for minimize icon
     btnMinimize.setAttribute("aria-label", "Minimize dialog");
+    btnMinimize.setAttribute("title", "Minimize (conversation will be saved)");
     header.appendChild(btnMinimize);
 
     // Tooltip for minimize button (custom tooltip to ensure it appears above dialog)
@@ -242,6 +226,7 @@ const AiExplain = {
     followUpInput.id = "followUpInput";
     followUpInput.className = "followup-input";
     followUpInput.placeholder = "Ask a follow-up question...";
+    followUpInput.setAttribute("title", "Ask a follow-up question about this explanation");
     followUpContainer.appendChild(followUpInput);
 
     content.appendChild(followUpContainer);
@@ -255,6 +240,8 @@ const AiExplain = {
     btnNewConversation.className = "jQuery-palette-button unselectable ui-button ui-corner-all ui-widget";
     btnNewConversation.tabIndex = 0;
     btnNewConversation.setAttribute("role", "button");
+    btnNewConversation.setAttribute("aria-label", "Start a new conversation");
+    btnNewConversation.setAttribute("title", "Start a new explanation using the current editor code");
     btnNewConversation.style.display = "none";
     btnNewConversation.textContent = "New Conversation";
     buttonsDiv.appendChild(btnNewConversation);
@@ -264,15 +251,19 @@ const AiExplain = {
     btnAsk.className = "jQuery-palette-button unselectable ui-button ui-corner-all ui-widget";
     btnAsk.tabIndex = 0;
     btnAsk.setAttribute("role", "button");
+    btnAsk.setAttribute("aria-label", "Ask follow-up question");
+    btnAsk.setAttribute("title", "Send your follow-up question to the AI");
     btnAsk.style.display = "none";
     btnAsk.textContent = "Ask";
     buttonsDiv.appendChild(btnAsk);
 
     const btnCancel = document.createElement("div");
-    btnCancel.id = "btnCancel";
+    btnCancel.id = "btnCancelExplain";
     btnCancel.className = "jQuery-palette-button unselectable ui-button ui-corner-all ui-widget";
     btnCancel.tabIndex = 0;
     btnCancel.setAttribute("role", "button");
+    btnCancel.setAttribute("aria-label", "Close explanation dialog");
+    btnCancel.setAttribute("title", "Close this dialog and clear the conversation");
     btnCancel.textContent = "Close";
     buttonsDiv.appendChild(btnCancel);
 
@@ -283,6 +274,8 @@ const AiExplain = {
 
     // Set up event listeners
     this.setupDialogEvents(dialog);
+
+    return dialog;
   },
 
   /**
@@ -316,8 +309,8 @@ const AiExplain = {
     this.isMinimized = false;
 
     // Focus the follow-up input if container is visible
-    const followUpContainer = document.getElementById("followUpContainer");
-    const followUpInput = document.getElementById("followUpInput");
+    const followUpContainer = dialog.querySelector("#followUpContainer");
+    const followUpInput = dialog.querySelector("#followUpInput");
     if (followUpInput && followUpContainer && followUpContainer.style.display !== "none") {
       followUpInput.focus();
     }
@@ -329,7 +322,7 @@ const AiExplain = {
    */
   setupDialogEvents(dialog) {
     // Minimize button
-    const btnMinimize = document.getElementById("btnMinimizeExplain");
+    const btnMinimize = dialog.querySelector("#btnMinimizeExplain");
     if (btnMinimize && !btnMinimize.dataset.aiEventsBound) {
       btnMinimize.dataset.aiEventsBound = "true";
       const minimizeHandler = event => {
@@ -340,7 +333,7 @@ const AiExplain = {
     }
 
     // Ask button (follow-up)
-    const btnAsk = document.getElementById("btnAsk");
+    const btnAsk = dialog.querySelector("#btnAsk");
     if (btnAsk && !btnAsk.dataset.aiEventsBound) {
       btnAsk.dataset.aiEventsBound = "true";
       const askHandler = event => {
@@ -357,7 +350,7 @@ const AiExplain = {
     }
 
     // Enter key on follow-up input
-    const followUpInput = document.getElementById("followUpInput");
+    const followUpInput = dialog.querySelector("#followUpInput");
     if (followUpInput && !followUpInput.dataset.aiEventsBound) {
       followUpInput.dataset.aiEventsBound = "true";
       followUpInput.addEventListener("keypress", event => {
@@ -369,7 +362,7 @@ const AiExplain = {
     }
 
     // New Conversation button
-    const btnNewConversation = document.getElementById("btnNewConversation");
+    const btnNewConversation = dialog.querySelector("#btnNewConversation");
     if (btnNewConversation && !btnNewConversation.dataset.aiEventsBound) {
       btnNewConversation.dataset.aiEventsBound = "true";
       const newConvHandler = event => {
@@ -390,7 +383,7 @@ const AiExplain = {
     }
 
     // Cancel button
-    const btnCancel = document.getElementById("btnCancel");
+    const btnCancel = dialog.querySelector("#btnCancelExplain");
     if (btnCancel && !btnCancel.dataset.aiEventsBound) {
       btnCancel.dataset.aiEventsBound = "true";
       const cancelHandler = event => {
@@ -424,16 +417,20 @@ const AiExplain = {
 
   /**
    * Perform the explanation
+   * @param {HTMLElement} dialog - The dialog element
    * @param {string} umpleCode - The Umple code to explain
    */
-  async performExplanation(umpleCode) {
-    const statusDiv = document.getElementById("explainStatusMessage");
-    const explanationContainer = document.getElementById("explanationContainer");
-    const explanationText = document.getElementById("explanationText");
-    const followUpContainer = document.getElementById("followUpContainer");
-    const btnAsk = document.getElementById("btnAsk");
-    const btnNewConversation = document.getElementById("btnNewConversation");
-    const followUpInput = document.getElementById("followUpInput");
+  async performExplanation(dialog, umpleCode) {
+    const statusDiv = dialog?.querySelector("#explainStatusMessage");
+    const explanationText = dialog?.querySelector("#explanationText");
+    const followUpContainer = dialog?.querySelector("#followUpContainer");
+    const btnAsk = dialog?.querySelector("#btnAsk");
+    const btnNewConversation = dialog?.querySelector("#btnNewConversation");
+    const followUpInput = dialog?.querySelector("#followUpInput");
+
+    if (!statusDiv || !explanationText || !followUpContainer || !btnAsk || !btnNewConversation || !followUpInput) {
+      return;
+    }
 
     // Update status
     statusDiv.textContent = "Analyzing your code...";
@@ -455,12 +452,15 @@ const AiExplain = {
     });
 
     try {
-      // Build prompt using ExplainPromptBuilder
-      const prompt = ExplainPromptBuilder.buildInitialPrompt(umpleCode);
-      const systemPrompt = ExplainPromptBuilder.getSystemPrompt();
+      // Append raw Umple code to context (system prompt defines explainer role)
+      if (!this.chatContext) {
+        this.chatContext = AiChatContext.create(ExplainPromptBuilder.getSystemPrompt());
+      }
+      AiChatContext.addUser(this.chatContext, umpleCode);
+      this.updateExplainButtonIndicator();
 
       // Call AI API (stream)
-      this.activeStream = AiApi.chatStream(prompt, systemPrompt, {}, {
+      this.activeStream = AiApi.chatStream(this.chatContext, {}, {
         onDelta: chunk => {
           buffered.append(chunk);
         }
@@ -477,7 +477,10 @@ const AiExplain = {
       }
 
       // Update history
-      this.addToHistory("assistant", explanation);
+      if (String(explanation || "").trim()) {
+        AiChatContext.addAssistant(this.chatContext, explanation);
+        this.updateExplainButtonIndicator();
+      }
 
       // Display explanation with markdown-like formatting
       explanationText.innerHTML = ExplainPromptBuilder.formatExplanation(explanation);
@@ -519,10 +522,14 @@ const AiExplain = {
    * @param {HTMLElement} dialog - The dialog element
    */
   async handleFollowUp(dialog) {
-    const statusDiv = document.getElementById("explainStatusMessage");
-    const btnAsk = document.getElementById("btnAsk");
-    const followUpInput = document.getElementById("followUpInput");
-    const explanationText = document.getElementById("explanationText");
+    const statusDiv = dialog?.querySelector("#explainStatusMessage");
+    const btnAsk = dialog?.querySelector("#btnAsk");
+    const followUpInput = dialog?.querySelector("#followUpInput");
+    const explanationText = dialog?.querySelector("#explanationText");
+
+    if (!statusDiv || !btnAsk || !followUpInput || !explanationText) {
+      return;
+    }
 
     const userQuestion = followUpInput.value.trim();
 
@@ -545,15 +552,12 @@ const AiExplain = {
     let answerTarget = null;
 
     try {
-      // Add user question to history
-      this.addToHistory("user", userQuestion);
-
-      // Build follow-up prompt using ExplainPromptBuilder
-      const prompt = ExplainPromptBuilder.buildFollowUpPrompt(
-        this.conversationHistory,
-        userQuestion
-      );
-      const systemPrompt = ExplainPromptBuilder.getSystemPrompt();
+      // Append raw follow-up question to context
+      if (!this.chatContext) {
+        this.chatContext = AiChatContext.create(ExplainPromptBuilder.getSystemPrompt());
+      }
+      AiChatContext.addUser(this.chatContext, userQuestion);
+      this.updateExplainButtonIndicator();
 
       // Append placeholder Q/A
       const qaWrapper = document.createElement("div");
@@ -598,7 +602,7 @@ const AiExplain = {
       // Start thinking animation for the answer
       this.startThinkingAnimation(aContent);
 
-      this.activeStream = AiApi.chatStream(prompt, systemPrompt, {}, {
+      this.activeStream = AiApi.chatStream(this.chatContext, {}, {
         onDelta: chunk => {
           renderer?.append(chunk);
         }
@@ -611,7 +615,10 @@ const AiExplain = {
       renderer?.clearTimer();
 
       // Add answer to history
-      this.addToHistory("assistant", answer);
+      if (String(answer || "").trim()) {
+        AiChatContext.addAssistant(this.chatContext, answer);
+        this.updateExplainButtonIndicator();
+      }
 
       // Final formatting pass for the answer
       aContent.innerHTML = ExplainPromptBuilder.formatExplanation(answer);

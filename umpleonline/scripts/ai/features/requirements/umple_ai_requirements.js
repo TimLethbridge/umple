@@ -33,50 +33,9 @@ const AiRequirements = {
     return AiConfigValidation.checkApiConfig({ requireVerified: true });
   },
 
-  buildPrompt(requirements, generationType) {
-    if (typeof RequirementsPromptBuilder !== "undefined" && RequirementsPromptBuilder.buildGeneration) {
-      return RequirementsPromptBuilder.buildGeneration(requirements, generationType).prompt;
-    }
-
-    const requirementTexts = requirements.map(req => `Requirement ${req.id}:\n${req.text}`).join("\n\n");
-
-    if (typeof AiPromptUtils !== "undefined" && AiPromptUtils.block && AiPromptUtils.joinBlocks) {
-      return AiPromptUtils.joinBlocks([
-        AiPromptUtils.block("task", "Generate ONLY Umple code based on the following requirement(s)."),
-        AiPromptUtils.block("requirements", requirementTexts, { allowEmpty: true }),
-        AiPromptUtils.block("output_contract", [
-          "- Output ONLY Umple code.",
-          "- Output EXACTLY ONE fenced code block with language \"umple\":",
-          "  ```umple",
-          "  ...",
-          "  ```",
-          "- No prose before or after the code block."
-        ].join("\n"))
-      ]);
-    }
-
-    return `Generate ONLY Umple code based on the following requirement(s).\n\nRequirements:\n${requirementTexts}\n\nUmple code:`;
-  },
-
   extractUmpleCode(response) {
     return AiTextUtils.extractUmpleCode(response);
   },
-
-  SYSTEM_PROMPT: (() => {
-    const base = (typeof AiPrompting !== "undefined" && AiPrompting.getBaseSystemPrompt)
-      ? AiPrompting.getBaseSystemPrompt()
-      : "You are an expert in Umple modeling language.";
-
-    const directive = "Your job is to generate ONLY valid Umple code.";
-    if (typeof AiPromptUtils !== "undefined" && AiPromptUtils.block && AiPromptUtils.joinBlocks) {
-      return AiPromptUtils.joinBlocks([
-        AiPromptUtils.block("system", base, { allowEmpty: true }),
-        AiPromptUtils.block("directive", directive)
-      ]);
-    }
-
-    return `${base}\n\n${directive}`;
-  })(),
 
   showDialog() {
     const umpleCode = Page.codeMirrorEditor6?.state.doc.toString() || "";
@@ -109,13 +68,17 @@ const AiRequirements = {
   },
 
   async handleGenerate(dialog, requirements) {
-    const statusDiv = document.getElementById("statusMessage");
-    const btnGenerate = document.getElementById("btnGenerate");
-    const btnStop = document.getElementById("btnStop");
-    const btnInsert = document.getElementById("btnInsert");
-    const codeContainer = document.getElementById("generatedCodeContainer");
-    const codeArea = document.getElementById("generatedCodeArea");
-    const outputContainer = document.getElementById("requirementsOutputContainer");
+    const statusDiv = dialog?.querySelector("#statusMessage");
+    const btnGenerate = dialog?.querySelector("#btnGenerate");
+    const btnStop = dialog?.querySelector("#btnStop");
+    const btnInsert = dialog?.querySelector("#btnInsert");
+    const codeContainer = dialog?.querySelector("#generatedCodeContainer");
+    const codeArea = dialog?.querySelector("#generatedCodeArea");
+    const outputContainer = dialog?.querySelector("#requirementsOutputContainer");
+
+    if (!statusDiv || !btnGenerate || !btnStop || !btnInsert || !codeContainer || !codeArea) {
+      return;
+    }
 
     const selectedReqs = RequirementsDialog.getSelectedRequirements(dialog, requirements);
 
@@ -138,27 +101,27 @@ const AiRequirements = {
     RequirementsDialog.setStatusMessage(statusDiv, "LLM", "Generating Umple code from requirements...");
 
     if (outputContainer) outputContainer.style.display = "block";
-    RequirementsDialog.clearRequirementsOutput();
-    RequirementsDialog.appendRequirementsOutput(`Generation type: ${genType}`);
+    RequirementsDialog.clearRequirementsOutput(dialog);
+    RequirementsDialog.appendRequirementsOutput(`Generation type: ${genType}`, dialog);
 
-    dialog.generationContext = { selectedReqs, genType, generation: null, umpleCode: "" };
+    dialog.generationContext = { selectedReqs, genType, generation: null, umpleCode: "", chatContext: null };
     let tokenLimitTruncated = false;
 
     try {
       if (typeof RequirementsPromptBuilder !== "undefined" && RequirementsPromptBuilder.preloadGuidance) {
         const guidanceType = genType === "classdiagram" ? "class diagrams" : "state machines";
-        RequirementsDialog.appendRequirementsOutput(`Reading guidance on requirements and ${guidanceType}...`);
+        RequirementsDialog.appendRequirementsOutput(`Reading guidance on requirements and ${guidanceType}...`, dialog);
         await RequirementsPromptBuilder.preloadGuidance(genType);
       }
 
-      const generation = (typeof RequirementsPromptBuilder !== "undefined" && RequirementsPromptBuilder.buildGeneration)
-        ? RequirementsPromptBuilder.buildGeneration(selectedReqs, genType)
-        : { prompt: this.buildPrompt(selectedReqs, genType), systemPrompt: this.SYSTEM_PROMPT, expectedRequirementIds: selectedReqs.map(r => r.id) };
+      const generation = RequirementsPromptBuilder.buildGeneration(selectedReqs, genType);
+      const chatContext = AiChatContext.create(generation.systemPrompt);
 
       dialog.generationContext.generation = generation;
+      dialog.generationContext.chatContext = chatContext;
 
       RequirementsDialog.setStatusMessage(statusDiv, "LLM", `Generating ${genType === "classdiagram" ? "class diagram" : "state machine"}...`);
-      RequirementsDialog.appendRequirementsOutput(`Generating ${genType === "classdiagram" ? "class diagram" : "state machine"}...`);
+      RequirementsDialog.appendRequirementsOutput(`Generating ${genType === "classdiagram" ? "class diagram" : "state machine"}...`, dialog);
       codeArea.value = "";
       codeContainer.style.display = "block";
       btnInsert.style.display = "none";
@@ -169,7 +132,8 @@ const AiRequirements = {
           codeArea.scrollTop = codeArea.scrollHeight;
         }
       });
-      this.activeStream = AiApi.chatStream(generation.prompt, generation.systemPrompt, {}, {
+      AiChatContext.addUser(chatContext, generation.prompt);
+      this.activeStream = AiApi.chatStream(chatContext, {}, {
         onDelta: (deltaText) => {
           streamRenderer.append(deltaText);
         },
@@ -181,7 +145,10 @@ const AiRequirements = {
       const response = await this.activeStream.done;
       this.activeStream = null;
       streamRenderer.flush({ force: true });
-      RequirementsDialog.appendRequirementsOutput("Generated initial Umple block from AI.");
+      if (response && response.trim()) {
+        AiChatContext.addAssistant(chatContext, response);
+      }
+      RequirementsDialog.appendRequirementsOutput("Generated initial Umple block from AI.", dialog);
 
       if (tokenLimitTruncated) {
         dialog.stopped = true;
@@ -198,76 +165,25 @@ const AiRequirements = {
       }
 
       let responseText = response || "";
-      if (typeof RequirementsPromptBuilder !== "undefined" && RequirementsPromptBuilder.validateResponseFormat) {
-        const formatErrors = RequirementsPromptBuilder.validateResponseFormat(responseText);
-        if (formatErrors.length > 0 && !dialog.stopped) {
-          RequirementsDialog.appendRequirementsOutput(`Output contract violations: ${formatErrors.join("; ")}`);
-          RequirementsDialog.setStatusMessage(statusDiv, "LLM", "Repairing output format...");
-          RequirementsDialog.appendRequirementsOutput("Attempting format-only repair...");
-          codeArea.value = "";
-          codeArea.placeholder = "Repairing output format...";
-          codeContainer.style.display = "block";
-
-          const originalEditorCode = Page.codeMirrorEditor6?.state.doc.toString() || "";
-          const invalidBlock = this.extractUmpleCode(responseText);
-          const compilerIssuesText = formatErrors.map(err => `- Validation Error: ${err}`).join("\n");
-
-          const repairResult = (typeof RequirementsPromptBuilder !== "undefined" && RequirementsPromptBuilder.repair_buildGeneration)
-            ? RequirementsPromptBuilder.repair_buildGeneration({
-              generationType: genType,
-              requirements: selectedReqs,
-              originalCode: originalEditorCode,
-              invalidBlock,
-              compilerIssuesText
-            })
-            : {
-              prompt: `Fix the output format: ${compilerIssuesText}\n\nOutput ONLY a single \`\`\`umple\`\`\` code block with valid Umple code.`,
-              systemPrompt: generation.systemPrompt
-            };
-
-          const streamRenderer = AiStreamUtils.createBufferedTextRenderer({
-            updateIntervalMs: 40,
-            onRender: text => {
-              codeArea.value = text;
-              codeArea.scrollTop = codeArea.scrollHeight;
-            }
-          });
-          this.activeStream = AiApi.chatStream(repairResult.prompt, repairResult.systemPrompt, {}, {
-            onDelta: (deltaText) => {
-              streamRenderer.append(deltaText);
-            }
-          });
-
-          responseText = await this.activeStream.done;
-          this.activeStream = null;
-          streamRenderer.flush({ force: true });
-          RequirementsDialog.appendRequirementsOutput("Output format repair completed.");
-
-          const remainingErrors = RequirementsPromptBuilder.validateResponseFormat(responseText);
-          if (remainingErrors.length > 0) {
-            RequirementsDialog.appendRequirementsOutput(`Output contract still violated: ${remainingErrors.join("; ")}`);
-          }
-        }
-      }
 
       dialog.generationContext.umpleCode = this.extractUmpleCode(responseText);
       let umpleCode = dialog.generationContext.umpleCode;
 
       if (!dialog.stopped) {
         RequirementsDialog.setStatusMessage(statusDiv, "Compiler", "Running self-correction (compiler + validation)...");
-        RequirementsDialog.appendRequirementsOutput("Running self-correction (compiler + validation)...");
+        RequirementsDialog.appendRequirementsOutput("Running self-correction (compiler + validation)...", dialog);
         codeArea.value = "";
         codeArea.placeholder = "Self-correction in progress...";
         const originalEditorCode = Page.codeMirrorEditor6?.state.doc.toString() || "";
           try {
             const corrected = await RequirementsSelfCorrection.run({
               originalCode: originalEditorCode,
-              generatedBlock: umpleCode,
+              generatedResponse: responseText,
               requirements: selectedReqs,
               generationType: genType,
-              systemPrompt: generation.systemPrompt,
+              chatContext,
               expectedRequirementIds: generation.expectedRequirementIds,
-              log: line => RequirementsDialog.appendRequirementsOutput(line),
+              log: line => RequirementsDialog.appendRequirementsOutput(line, dialog),
               setStatus: (label, message, color) => RequirementsDialog.setStatusMessage(statusDiv, label, message, color),
               shouldStop: () => !!dialog.stopped,
               setActiveStream: handle => {
@@ -287,7 +203,7 @@ const AiRequirements = {
               dialog.generationContext.umpleCode = umpleCode;
             }
         } catch (e) {
-          RequirementsDialog.appendRequirementsOutput(`Self-correction failed: ${e.message}`);
+          RequirementsDialog.appendRequirementsOutput(`Self-correction failed: ${e.message}`, dialog);
         }
       }
 
@@ -304,7 +220,7 @@ const AiRequirements = {
       }
     } catch (error) {
       if (error?.name === "AbortError") {
-        RequirementsDialog.appendRequirementsOutput("\nGeneration stopped by user.");
+        RequirementsDialog.appendRequirementsOutput("\nGeneration stopped by user.", dialog);
         return;
       }
       console.error("Error generating code:", error);
@@ -319,12 +235,16 @@ const AiRequirements = {
   },
 
   async handleStop(dialog) {
-    const statusDiv = document.getElementById("statusMessage");
-    const btnGenerate = document.getElementById("btnGenerate");
-    const btnStop = document.getElementById("btnStop");
-    const btnInsert = document.getElementById("btnInsert");
-    const codeContainer = document.getElementById("generatedCodeContainer");
-    const codeArea = document.getElementById("generatedCodeArea");
+    const statusDiv = dialog?.querySelector("#statusMessage");
+    const btnGenerate = dialog?.querySelector("#btnGenerate");
+    const btnStop = dialog?.querySelector("#btnStop");
+    const btnInsert = dialog?.querySelector("#btnInsert");
+    const codeContainer = dialog?.querySelector("#generatedCodeContainer");
+    const codeArea = dialog?.querySelector("#generatedCodeArea");
+
+    if (!statusDiv || !btnGenerate || !btnStop || !btnInsert || !codeContainer || !codeArea) {
+      return;
+    }
 
     dialog.stopped = true;
     this.abortActiveStream();
@@ -347,7 +267,7 @@ const AiRequirements = {
       }
 
       if (umpleCode.trim()) {
-        RequirementsDialog.appendRequirementsOutput("Applying partial generated code...");
+        RequirementsDialog.appendRequirementsOutput("Applying partial generated code...", dialog);
         codeArea.value = umpleCode;
         codeContainer.style.display = "block";
         btnInsert.style.display = "inline-block";
@@ -371,8 +291,8 @@ const AiRequirements = {
   },
 
   handleInsert(dialog) {
-    const codeArea = document.getElementById("generatedCodeArea");
-    const code = codeArea.value;
+    const codeArea = dialog?.querySelector("#generatedCodeArea");
+    const code = codeArea?.value;
     if (code) {
       if (!Page.codeMirrorEditor6) {
         alert("Editor not initialized");
