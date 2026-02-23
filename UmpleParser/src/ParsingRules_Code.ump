@@ -122,6 +122,13 @@ class ChoiceRule
   public Position findPosition(int lookfor, ParserDataPackage data)
   {
     String input = data.getInput();
+    /*in case of empty input*/
+    if (input.isEmpty()) return new Position(
+                                data.getFilename(),
+                                1,
+                                0,
+                                lookfor
+                                );
 	while(lookfor<input.length()-1&&(input.charAt(lookfor)+"").matches("\\s")){
 		++lookfor;
 	}
