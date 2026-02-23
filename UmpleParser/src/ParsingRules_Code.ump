@@ -122,40 +122,59 @@ class ChoiceRule
   public Position findPosition(int lookfor, ParserDataPackage data)
   {
     String input = data.getInput();
-    /*in case of empty input*/
-    if (input.isEmpty()) return new Position(
-                                data.getFilename(),
-                                1,
-                                0,
-                                lookfor
-                                );
-	while(lookfor<input.length()-1&&(input.charAt(lookfor)+"").matches("\\s")){
-		++lookfor;
-	}
-	if(lookfor>=input.length()){
-	  lookfor=input.length()-1;
-	}
+    /*
+      In case of empty input.
+    */
+    if(input.isEmpty())
+    {
+      return new Position(
+          data.getFilename(),
+          1,
+          0,
+          lookfor
+          );
+    }
+    while(lookfor<input.length()-1&&(input.charAt(lookfor)+"").matches("\\s"))
+    {
+      ++lookfor;
+    }
+    if(lookfor>=input.length())
+    {
+      lookfor=input.length()-1;
+    }
     Set<Integer> keys = data.getLinenumbers().keySet();
     int offset = 0;
     int linenumber = 0;
-    /*build a line start-end map*/
-    Map<Integer,List<Integer>> lineMap=new HashMap<Integer,List<Integer>>();
-    for (Integer key:keys){
-    if (lineMap.size()==0){
-    lineMap.put(0,new ArrayList<>(List.of(key)));
-    continue;
+    /*
+      Build a line start-end map.
+    */
+    Map<Integer,List<Integer>> lineMap = new HashMap<Integer,List<Integer>>();
+    for(Integer key:keys)
+    {
+      if(lineMap.size()==0)
+      {
+        List<Integer> lineBound = new ArrayList<Integer>();
+        lineBound.add(key);
+        lineMap.put(0,lineBound);
+        continue;
+      }
+      int lastLineNum = lineMap.size()-1;
+      lineMap.get(lastLineNum).add(key);
+      List<Integer> lineBound = new ArrayList<Integer>();
+      lineBound.add(key);
+      lineMap.put(lastLineNum+1,lineBound);
     }
-    int lastLineNum=lineMap.size()-1;
-    lineMap.get(lastLineNum).add(key);
-    lineMap.put(lastLineNum+1,new ArrayList<>(List.of(key)));
+    /*
+      Set the last line bound.
+    */
+    if(lineMap.size()>0)
+    {
+      lineMap.get(lineMap.size()-1).add(input.length());
     }
-    /*last line bound set*/
-    if (lineMap.size()>0)
-    lineMap.get(lineMap.size()-1).add(input.length());
     for(Map.Entry<Integer,List<Integer>> lineData:lineMap.entrySet())
     {
-      int lineStart=lineData.getValue().get(0);
-      int lineEnd=lineData.getValue().get(1);
+      int lineStart = lineData.getValue().get(0);
+      int lineEnd = lineData.getValue().get(1);
       if(lookfor>=lineStart&&lookfor<lineEnd)
       {
         offset = lookfor-lineStart;
@@ -163,14 +182,16 @@ class ChoiceRule
         break;
       }
     }
-    /*FALLBACK
-    the number should never be 0 or lineMap.size() in normal case
-    when in this case, follow the original fallback:set linenumber to 1
-    and print log*/
-    if (linenumber==0||linenumber==lineMap.size()+1){
-        linenumber=1;
-        offset=lookfor;
-        System.out.println("[DEBUG]Umple Parser error occured. Check UmpleParser/src/ParsingRules_Code.ump:166 and issue#2279");
+    /*
+      Fallback:
+      The number should never be 0 or lineMap.size()+1 in normal case.
+      In this case, follow the original fallback: set linenumber to 1 and print log.
+    */
+    if(linenumber==0||linenumber==lineMap.size()+1)
+    {
+      linenumber=1;
+      offset=lookfor;
+      System.out.println("[DEBUG]Umple Parser error occured. Check UmpleParser/src/ParsingRules_Code.ump:166 and issue#2279");
     }
     return new Position(
         data.getFilename(),
