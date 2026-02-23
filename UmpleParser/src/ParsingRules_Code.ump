@@ -149,27 +149,30 @@ class ChoiceRule
       Build a line start-end map.
     */
     Map<Integer,List<Integer>> lineMap = new HashMap<Integer,List<Integer>>();
+    int lastLineNum=0;
     for(Integer key:keys)
     {
+      int currentLineNum=data.getLinenumbers().get(key);
       if(lineMap.size()==0)
       {
         List<Integer> lineBound = new ArrayList<Integer>();
         lineBound.add(key);
-        lineMap.put(0,lineBound);
+        lineMap.put(currentLineNum,lineBound);
+        lastLineNum=currentLineNum;
         continue;
       }
-      int lastLineNum = lineMap.size()-1;
       lineMap.get(lastLineNum).add(key);
       List<Integer> lineBound = new ArrayList<Integer>();
       lineBound.add(key);
-      lineMap.put(lastLineNum+1,lineBound);
+      lineMap.put(currentLineNum,lineBound);
+      lastLineNum=currentLineNum;
     }
     /*
       Set the last line bound.
     */
     if(lineMap.size()>0)
     {
-      lineMap.get(lineMap.size()-1).add(input.length());
+      lineMap.get(lastLineNum).add(input.length());
     }
     for(Map.Entry<Integer,List<Integer>> lineData:lineMap.entrySet())
     {
@@ -184,14 +187,14 @@ class ChoiceRule
     }
     /*
       Fallback:
-      The number should never be 0 or lineMap.size()+1 in normal case.
-      In this case, follow the original fallback: set linenumber to 1 and print log.
+      The number should never be 0 in normal case.
+      In this case, follow the original fallback: set linenumber to 1.
     */
-    if(linenumber==0||linenumber==lineMap.size()+1)
+    if(linenumber==0)
     {
       linenumber=1;
       offset=lookfor;
-      System.out.println("[DEBUG]Umple Parser error occured. Check UmpleParser/src/ParsingRules_Code.ump:194 and issue#2279");
+      //System.out.println("[DEBUG]Umple Parser error occured. Check UmpleParser/src/ParsingRules_Code.ump:194 and issue#2279");
     }
     return new Position(
         data.getFilename(),
