@@ -102,3 +102,6 @@ __pycache__/
 # Python venv
 .venv/*
 venv/*
+
+# Direnv local SHELL ENV settings
+/.envrc
