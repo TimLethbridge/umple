@@ -294,6 +294,7 @@ Action.clicked = function(event)
   else if (action == "ShowEditableClassDiagram")
   {
     Action.changeDiagramType({type:"editableClass"});
+    Action.syncLiveViewSelector("ecd");
   }
   else if (action == "ShowJointJSClassDiagram")
   {
@@ -302,18 +303,27 @@ Action.clicked = function(event)
   else if (action == "ShowGvClassDiagram")
   {
     Action.changeDiagramType({type:"GvClass"});
+    Action.syncLiveViewSelector("gcd");
   }
   else if (action == "ShowGvFeatureDiagram")
   {
     Action.changeDiagramType({type:"GvFeature"});//buttonShowGvFeatureDiagram
+    Action.syncLiveViewSelector("gfd");
   }
   else if (action == "ShowGvStateDiagram")
   {
     Action.changeDiagramType({type:"GvState"});
+    Action.syncLiveViewSelector("sd");
   }
   else if (action == "ShowStructureDiagram")
   {
     Action.changeDiagramType({type:"structure"});
+    Action.syncLiveViewSelector("std");
+  }
+  else if (action == "ShowEntityRelationshipDiagram")
+  {
+    Action.changeDiagramType({type:"GvEntityRelationshipDiagram"});
+    Action.syncLiveViewSelector("erd");
   }
   else if (action == "ShowHideLayoutEditor")
   {
@@ -920,6 +930,7 @@ Action.changeDiagramType = function(newDiagramType)
     Page.useGvStateDiagram = false;
     Page.useGvFeatureDiagram = false;
     Page.useStructureDiagram = false;
+    Page.useGvEntityRelationshipDiagram = false;
     changedType = true;
     jQuery("#buttonShowEditableClassDiagram").prop('checked', 'checked');
     Page.setDiagramTypeIconState('editableClass');
@@ -935,6 +946,7 @@ Action.changeDiagramType = function(newDiagramType)
     Page.useGvStateDiagram = false;
     Page.useGvFeatureDiagram = false;
     Page.useStructureDiagram = false;
+    Page.useGvEntityRelationshipDiagram = false;
     changedType = true;
     jQuery("#buttonShowJointJSClassDiagram").prop('checked', 'checked');
     Page.setDiagramTypeIconState('JointJSClass');
@@ -949,12 +961,32 @@ Action.changeDiagramType = function(newDiagramType)
     Page.useGvStateDiagram = false;
     Page.useGvFeatureDiagram = false;
     Page.useStructureDiagram = false;
+    Page.useGvEntityRelationshipDiagram = false;
     changedType = true;
     jQuery("#buttonShowGvClassDiagram").prop('checked', 'checked');
     Page.setDiagramTypeIconState('GvClass');
     jQuery(".view_opt_class").show();
 
   }
+
+  else if(newDiagramType.type == "GvEntity" || newDiagramType.type == "GvEntityRelationshipDiagram") { 
+    if(Page.useGvEntityRelationshipDiagram) return;
+    Page.useGvClassDiagram = false;
+    Page.useEditableClassDiagram = false;
+    Page.useJointJSClassDiagram = false;
+    Page.useGvClassDiagram = false;
+    Page.useGvStateDiagram = false;
+    Page.useGvFeatureDiagram = false;
+    Page.useStructureDiagram = false;
+    Page.useGvEntityRelationshipDiagram = true;
+    changedType = true;
+    jQuery("#buttonShowGvEntityRelationshipDiagram").prop('checked', 'checked');
+    Page.setDiagramTypeIconState('GvEntity');
+    jQuery(".view_opt_class").show();
+    Page.initExamples();
+
+  }
+
   else if(newDiagramType.type == "GvState") {
     if(Page.useGvStateDiagram) return;
     Page.useEditableClassDiagram = false;
@@ -963,6 +995,7 @@ Action.changeDiagramType = function(newDiagramType)
     Page.useGvStateDiagram = true;
     Page.useStructureDiagram = false;
     Page.useGvFeatureDiagram = false;
+    Page.useGvEntityRelationshipDiagram = false;
     changedType = true;
     jQuery("#buttonShowGvStateDiagram").prop('checked', 'checked');
     Page.setDiagramTypeIconState('GvState');
@@ -977,6 +1010,7 @@ Action.changeDiagramType = function(newDiagramType)
     Page.useGvStateDiagram = false;
     Page.useStructureDiagram = false;
     Page.useGvFeatureDiagram = true;
+    Page.useGvEntityRelationshipDiagram = false;
     changedType = true;
     jQuery("#buttonShowGvFeatureDiagram").prop('checked', 'checked');
     Page.setDiagramTypeIconState('GvFeature');
@@ -992,6 +1026,7 @@ Action.changeDiagramType = function(newDiagramType)
     Page.useGvStateDiagram = false;
     Page.useStructureDiagram = true;
     Page.useGvFeatureDiagram = false;
+    Page.useGvEntityRelationshipDiagram = false;
     changedType = true;
     jQuery("#buttonShowStructureDiagram").prop('checked', 'checked');
     Page.setDiagramTypeIconState('structure');
@@ -4379,6 +4414,11 @@ Action.loadExample = function loadExample()
  else if(Page.useGvFeatureDiagram) {
     diagramType="&diagramtype=GvFeature";
   }
+
+  else if(Page.useGvEntityRelationshipDiagram) {
+    diagramType="&diagramtype=entityRelationshipDiagram";
+  }
+
   else if(Page.useStructureDiagram) {
     diagramType="&diagramtype=structure&generateDefault=cpp";
   }
@@ -4404,6 +4444,7 @@ Action.loadExample = function loadExample()
   {
     var shortExampleName=exampleName;
     var newURL="?example="+shortExampleName+diagramType;
+    window.history.pushState({}, "", newURL);
   }
 
   setTimeout(function () { // Delay so it doesn't get erased
@@ -6540,6 +6581,11 @@ Mousetrap.bind(['ctrl+g'], function(e){
   return false; //equivalent to e.preventDefault();
 });
 
+Mousetrap.bind(['ctrl+v'], function(e){
+  Page.clickShowGvEntityRelationshipDiagram();
+  return false; //equivalent to e.preventDefault();
+});
+
 Mousetrap.bind(['ctrl+s'], function(e){
   Page.clickShowGvStateDiagram();
   return false; //equivalent to e.preventDefault();
@@ -6747,6 +6793,7 @@ Action.getLanguage = function()
     }
   }
   else if(Page.useGvStateDiagram) {language="language=stateDiagram"}
+  else if(Page.useGvEntityRelationshipDiagram) {language="language=entityDiagram"}
   else if(Page.useStructureDiagram) {language="language=StructureDiagram"}
  
 
@@ -7095,7 +7142,16 @@ Action.setLiveView = function(viewNameToSet)
   if (viewNameToSet=="ecd") { Page.clickShowEditableClassDiagram(); }
   else if (viewNameToSet=="gcd") { Page.clickShowGvClassDiagram(); }
   else if (viewNameToSet=="sd") { Page.clickShowGvStateDiagram(); }
+  else if (viewNameToSet=="std") { Page.clickShowStructureDiagram();}
+  else if (viewNameToSet=="erd") { Page.clickShowGvEntityRelationshipDiagram();}
+  else if (viewNameToSet=="gfd") { Page.clickShowGvFeatureDiagram();}
   else Page.catFeedbackMessage("DEBUG bad selection!!!");
 }
 
+Action.syncLiveViewSelector = function(viewCode) {
+  var selector = document.getElementById("liveViewSelector");
+  if (selector) {
+    selector.value = viewCode;
+  }
+};
 

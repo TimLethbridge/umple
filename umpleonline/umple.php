@@ -576,9 +576,11 @@ $output = $dataHandle->readData('model.ump');
           style="font-size: 11px; border-radius: 4px; padding: 2px;">
     <option value="gcd" id="menu-set-gcd" >Gv Class Diagram</option>
     <option value="ecd" id="menu-set-ecd">E Class Diagram</option>
-    <option value="sd" if="menu-set-sd">State Diagram</option>    
-    <!--option value="gvEntityRelationDiagram">ERD</option>
-    <option value="gvFeature">Feature Diagram</option>
+    <option value="sd" id="menu-set-sd">State Diagram</option>  
+    <option value="std" id="menu-set-std">Structure Diagram</option>  
+    <option value="gfd" id="menu-set-gfd">Feature Diagram</option>
+    <option value="erd" id="menu-set-erd">ERD</option>
+    <!--option value="gvFeature">Feature Diagram</option>
     <option value="crud">CRUD Matrix</option>
     <option value="stateTables">State Tables</option>
     <option value="eventSequence">Event Sequence</option>

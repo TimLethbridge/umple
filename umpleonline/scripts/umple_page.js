@@ -43,6 +43,7 @@ Page.useGvFeatureDiagram = false;
 Page.showFeatureDependency = false;
 Page.useStructureDiagram = false;
 Page.useFeatureDiagram = false;
+Page.useGvEntityRelationshipDiagram = false;
 Page.showAttributes = true;
 Page.showMethods = false;
 Page.filterWordsOutput = "";
@@ -98,6 +99,7 @@ Page.init = function(doShowDiagram, doShowText, doShowMenu, doReadOnly, doShowLa
   if(diagramType.toLowerCase() == "gvstate" || diagramType.toLowerCase() == "state")   
   { 
     Page.useGvStateDiagram = true;
+    Page.useGvEntityRelationshipDiagram = false;
     Page.useEditableClassDiagram = false; 
     Page.setDiagramTypeIconState('GvState');
     Page.useGvFeatureDiagram = false;
@@ -107,6 +109,7 @@ Page.init = function(doShowDiagram, doShowText, doShowMenu, doReadOnly, doShowLa
   else if(diagramType.toLowerCase() == "gvclass")
   {
     Page.useGvClassDiagram = true;
+    Page.useGvEntityRelationshipDiagram = false;
     Page.useEditableClassDiagram = false;
     Page.setDiagramTypeIconState('GvClass');
     Page.useGvFeatureDiagram = false;
@@ -116,6 +119,7 @@ Page.init = function(doShowDiagram, doShowText, doShowMenu, doReadOnly, doShowLa
   else if(diagramType.toLowerCase() == "gvclasstrait")
   {
     Page.useGvClassDiagram = true;
+    Page.useGvEntityRelationshipDiagram = false;
     Page.useEditableClassDiagram = false;
     Page.setDiagramTypeIconState('GvClass');
     Page.useGvFeatureDiagram = false;
@@ -125,6 +129,7 @@ Page.init = function(doShowDiagram, doShowText, doShowMenu, doReadOnly, doShowLa
   else if(diagramType.toLowerCase() == "gvfeature")
   {
     Page.useGvFeatureDiagram = true;
+    Page.useGvEntityRelationshipDiagram = false;
     Page.useEditableClassDiagram = false;
     Page.useGvStateDiagram = false;
     Page.useStructureDiagram = false;
@@ -135,8 +140,17 @@ Page.init = function(doShowDiagram, doShowText, doShowMenu, doReadOnly, doShowLa
   else if(diagramType.toLowerCase() == "structurediagram")
   {
     Page.useStructureDiagram = true;
+    Page.useGvEntityRelationshipDiagram = false;
     Page.useEditableClassDiagram = false;  
     Page.setDiagramTypeIconState('structureDiagram');
+    Page.useGvFeatureDiagram = false;
+  }
+  else if(diagramType.toLowerCase() == "entityrelationshipdiagram")
+  {
+    Page.useGvEntityRelationshipDiagram = true;
+    Page.useStructureDiagram = false;
+    Page.useEditableClassDiagram = false;  
+    Page.setDiagramTypeIconState('entityRelationshipDiagram');
     Page.useGvFeatureDiagram = false;
   }
   else
@@ -288,6 +302,7 @@ Page.initPaletteArea = function()
   Page.initAction("buttonShowGvStateDiagram");
   Page.initAction("buttonShowGvFeatureDiagram");//buttonShowGvFeatureDiagram
   Page.initAction("buttonShowStructureDiagram");
+  Page.initAction("buttonShowGvEntityRelationshipDiagram");
   Page.initAction("buttonShowHideLayoutEditor");
   Page.initAction("buttonManualSync");
   Page.initAction("buttonCopyClip");
@@ -410,6 +425,10 @@ Page.initOptions = function()
 
   if(Page.useGvStateDiagram)
     jQuery("#buttonShowGvStateDiagram").prop('checked', true);
+
+  if(Page.useGvEntityRelationshipDiagram)
+    jQuery("#buttonShowGvEntityRelationshipDiagram").prop('checked', true);
+
   if(Page.useStructureDiagram)
     jQuery("#buttonShowStructureDiagram").prop('checked', true);
 
@@ -564,6 +583,7 @@ Page.initCodeMirrorEditor = function() {
     { key: "Ctrl-E", run: function() { Page.clickShowEditableClassDiagram() } },
     { key: "Ctrl-J", run: function() { Page.clickShowJointJSClassDiagram() } },
     { key: "Ctrl-G", run: function() { Page.clickShowGvClassDiagram() } },
+    { key: "Ctrl-V", run: function() { Page.clickShowGvEntityRelationshipDiagram() } },
     { key: "Ctrl-S", run: function() { Page.clickShowGvStateDiagram() } },
     { key: "Ctrl-L", run: function() { Page.clickShowStructureDiagram() } },
     { key: "Ctrl-T", run: function() { Page.clickShowHideText() } },
@@ -637,6 +657,8 @@ Page.setDiagramTypeIconState = function(diagramType){
     document.getElementById('ECD_button').className = "button2 active";
     break;
     case 'GvClass':
+    case 'entityRelationshipDiagram': // Map ERD to the 'G' button
+    case 'GvEntity': 
     document.getElementById('GCD_button').className = "button2 active";
     break;
     case 'GvState':
@@ -688,6 +710,9 @@ Page.clickShowJointJSClassDiagram = function() {
 }
 Page.clickShowGvClassDiagram = function() {
   jQuery('#buttonShowGvClassDiagram').trigger('click');
+}
+Page.clickShowGvEntityRelationshipDiagram = function() {
+  jQuery('#buttonShowGvEntityRelationshipDiagram').trigger('click');
 }
 Page.clickShowGvStateDiagram = function() {
   jQuery('#buttonShowGvStateDiagram').trigger('click');
@@ -899,7 +924,8 @@ Page.initExamples = function()
     jQuery("#itemLoadExamples5").hide();   
     jQuery("#itemLoadExamples6").hide();   
     jQuery("#itemLoadExamples7").hide();   
-    jQuery("#itemLoadExamples8").hide();   
+    jQuery("#itemLoadExamples8").hide();
+    jQuery("#itemLoadExamplesERD").hide();   
 
   }
   else if (Page.useGvStateDiagram) {
@@ -910,7 +936,8 @@ Page.initExamples = function()
     jQuery("#itemLoadExamples5").hide();
     jQuery("#itemLoadExamples6").hide();   
     jQuery("#itemLoadExamples7").hide();   
-    jQuery("#itemLoadExamples8").hide();   
+    jQuery("#itemLoadExamples8").hide();
+    jQuery("#itemLoadExamplesERD").hide();   
 
   }
  else if (Page.useGvFeatureDiagram) {
@@ -921,8 +948,21 @@ Page.initExamples = function()
     jQuery("#itemLoadExamples5").hide();
     jQuery("#itemLoadExamples6").hide();   
     jQuery("#itemLoadExamples7").hide();   
-    jQuery("#itemLoadExamples8").hide();   
+    jQuery("#itemLoadExamples8").hide();
+    jQuery("#itemLoadExamplesERD").hide();   
 
+  }
+
+  else if (Page.useGvEntityRelationshipDiagram) {
+    jQuery("#menu-set-erd").prop("selected",true);
+    jQuery("#itemLoadExamples").hide();
+    jQuery("#itemLoadExamples2").hide();
+    jQuery("#itemLoadExamples3").hide();
+    jQuery("#itemLoadExamples5").hide();
+    jQuery("#itemLoadExamples6").hide();   
+    jQuery("#itemLoadExamples7").hide();   
+    jQuery("#itemLoadExamples8").hide();
+    jQuery("#itemLoadExamplesERD").show();   
   }
   else {
     // TODO any examples loaded on initialization without a 
@@ -930,6 +970,7 @@ Page.initExamples = function()
     // Therefore for new example sets 5-8, we will need to change this logic
     // to determine which set to hide
     jQuery("#cdModels").prop("selected",true); 
+    jQuery("#itemLoadExamples").show();
     jQuery("#itemLoadExamples2").hide();
     jQuery("#itemLoadExamples3").hide(); 
     jQuery("#itemLoadExamples4").hide();
@@ -1448,6 +1489,16 @@ Page.getSelectedExample = function()
       }
     
     }
+
+    else if (theExampleType == "entityModels")
+    {
+       inputExample = jQuery("#inputExample4 option:selected").val(); 
+       if( !Page.useGvEntityRelationshipDiagram) {
+         jQuery("#buttonShowGvEntityRelationshipDiagram").attr('checked', true); 
+         Action.changeDiagramType({type: "GvEntity"});
+      }
+    
+    } 
   else {
 
     if(theExampleType == "smModels") {
