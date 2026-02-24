@@ -24,6 +24,8 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
     super.tearDown();
     SampleFileWriter.destroy(pathToInput + "/mermaid/StateBasic_classDiagram.mermaid");
     SampleFileWriter.destroy(pathToInput + "/mermaid/StateBasic_stateDiagram.mermaid");
+    SampleFileWriter.destroy(pathToInput + "/mermaid/NoStateMachines_classDiagram.mermaid");
+    SampleFileWriter.destroy(pathToInput + "/mermaid/NoStateMachines_stateDiagram.mermaid");
   }
 
   @Test
@@ -31,6 +33,8 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
   {
     suboptions = null;
     assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.combined.mermaid.txt");
+    Assert.assertTrue(new File(pathToInput + "/mermaid/StateBasic_classDiagram.mermaid").exists());
+    Assert.assertTrue(new File(pathToInput + "/mermaid/StateBasic_stateDiagram.mermaid").exists());
   }
 
   @Test
@@ -38,6 +42,7 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
   {
     suboptions = new String[] {"class"};
     assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.classonly.mermaid.txt");
+    Assert.assertTrue(new File(pathToInput + "/mermaid/StateBasic_classDiagram.mermaid").exists());
   }
 
   @Test
@@ -45,6 +50,7 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
   {
     suboptions = new String[] {"CLASS"};
     assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.classonly.mermaid.txt");
+    Assert.assertTrue(new File(pathToInput + "/mermaid/StateBasic_classDiagram.mermaid").exists());
   }
 
   @Test
@@ -52,6 +58,7 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
   {
     suboptions = new String[] {"state"};
     assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.mermaid.txt");
+    Assert.assertTrue(new File(pathToInput + "/mermaid/StateBasic_stateDiagram.mermaid").exists());
   }
 
   @Test
@@ -59,6 +66,7 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
   {
     suboptions = new String[] {"StAtE"};
     assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.mermaid.txt");
+    Assert.assertTrue(new File(pathToInput + "/mermaid/StateBasic_stateDiagram.mermaid").exists());
   }
 
   @Test
@@ -91,6 +99,7 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
   {
     suboptions = null;
     assertUmpleTemplateFor("mermaid/NoStateMachines.ump", "mermaid/NoStateMachines.classonly.mermaid.txt");
+    Assert.assertTrue(new File(pathToInput + "/mermaid/NoStateMachines_classDiagram.mermaid").exists());
   }
 
   @Test
@@ -98,5 +107,6 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
   {
     suboptions = new String[] {"state"};
     assertUmpleTemplateFor("mermaid/NoStateMachines.ump", "mermaid/NoStateMachines.stateonly.mermaid.txt");
+    Assert.assertTrue(new File(pathToInput + "/mermaid/NoStateMachines_stateDiagram.mermaid").exists());
   }
 }

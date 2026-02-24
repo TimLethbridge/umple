@@ -22,6 +22,7 @@ public class MermaidTemplateTest extends TemplateTest
   {
     super.tearDown();
     SampleFileWriter.destroy(pathToInput + "/mermaid/umple_classDiagram.mermaid");
+    SampleFileWriter.destroy(pathToInput + "/mermaid/ClassTemplateTest_Mermaid_classDiagram.mermaid");
   }
   
   @Test
