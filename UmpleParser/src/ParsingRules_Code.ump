@@ -194,7 +194,6 @@ class ChoiceRule
     {
       linenumber=1;
       offset=lookfor;
-      //System.out.println("[DEBUG]Umple Parser error occured. Check UmpleParser/src/ParsingRules_Code.ump:194 and issue#2279");
     }
     return new Position(
         data.getFilename(),
