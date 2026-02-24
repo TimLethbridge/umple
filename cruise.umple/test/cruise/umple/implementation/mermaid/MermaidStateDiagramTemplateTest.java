@@ -2,6 +2,7 @@ package cruise.umple.implementation.mermaid;
 
 import org.junit.*;
 
+import cruise.umple.compiler.Event;
 import cruise.umple.implementation.*;
 import cruise.umple.util.SampleFileWriter;
 
@@ -24,6 +25,8 @@ public class MermaidStateDiagramTemplateTest extends TemplateTest
     SampleFileWriter.destroy(pathToInput + "/mermaid/StateBasic_stateDiagram.mermaid");
     SampleFileWriter.destroy(pathToInput + "/mermaid/StateNested_stateDiagram.mermaid");
     SampleFileWriter.destroy(pathToInput + "/mermaid/StateMachineScopeCollision_stateDiagram.mermaid");
+    SampleFileWriter.destroy(pathToInput + "/mermaid/StateAutoTransition_stateDiagram.mermaid");
+    SampleFileWriter.destroy(pathToInput + "/mermaid/StateUnspecifiedEvent_stateDiagram.mermaid");
   }
   
   @Test
@@ -42,5 +45,25 @@ public class MermaidStateDiagramTemplateTest extends TemplateTest
   public void StateMachineScopeCollision()
   {
     assertUmpleTemplateFor("mermaid/StateMachineScopeCollision.ump", "mermaid/StateMachineScopeCollision.mermaid.txt");
+  }
+
+  @Test
+  public void StateAutoTransition()
+  {
+    Event.setNextAutoTransitionId(1);
+    try
+    {
+      assertUmpleTemplateFor("mermaid/StateAutoTransition.ump", "mermaid/StateAutoTransition.mermaid.txt");
+    }
+    finally
+    {
+      Event.setNextAutoTransitionId(1);
+    }
+  }
+
+  @Test
+  public void StateUnspecifiedEvent()
+  {
+    assertUmpleTemplateFor("mermaid/StateUnspecifiedEvent.ump", "mermaid/StateUnspecifiedEvent.mermaid.txt");
   }
 }

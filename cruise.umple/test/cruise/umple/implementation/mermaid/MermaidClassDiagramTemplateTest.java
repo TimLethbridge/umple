@@ -49,7 +49,9 @@ public class MermaidClassDiagramTemplateTest extends ClassTemplateTest
     SampleFileWriter.destroy(pathToInput + "/mermaid/AttributesAndMethods_classDiagram.mermaid");
     SampleFileWriter.destroy(pathToInput + "/mermaid/Inheritance_classDiagram.mermaid");
     SampleFileWriter.destroy(pathToInput + "/mermaid/Interfaces_classDiagram.mermaid");
+    SampleFileWriter.destroy(pathToInput + "/mermaid/InterfacesInheritance_classDiagram.mermaid");
     SampleFileWriter.destroy(pathToInput + "/mermaid/Associations_classDiagram.mermaid");
+    SampleFileWriter.destroy(pathToInput + "/mermaid/AssociationsLeftNavigable_classDiagram.mermaid");
   }
   
   @Test
@@ -78,8 +80,20 @@ public class MermaidClassDiagramTemplateTest extends ClassTemplateTest
   }
 
   @Test
+  public void InterfacesInheritance()
+  {
+    assertUmpleTemplateFor("mermaid/InterfacesInheritance.ump", "mermaid/InterfacesInheritance.mermaid.txt");
+  }
+
+  @Test
   public void Associations()
   {
     assertUmpleTemplateFor("mermaid/Associations.ump", "mermaid/Associations.mermaid.txt");
+  }
+
+  @Test
+  public void AssociationsLeftNavigable()
+  {
+    assertUmpleTemplateFor("mermaid/AssociationsLeftNavigable.ump", "mermaid/AssociationsLeftNavigable.mermaid.txt");
   }
 }

@@ -41,9 +41,23 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
   }
 
   @Test
+  public void MermaidClassSuboptionCaseInsensitive()
+  {
+    suboptions = new String[] {"CLASS"};
+    assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.classonly.mermaid.txt");
+  }
+
+  @Test
   public void MermaidStateSuboption()
   {
     suboptions = new String[] {"state"};
+    assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.mermaid.txt");
+  }
+
+  @Test
+  public void MermaidStateSuboptionCaseInsensitive()
+  {
+    suboptions = new String[] {"StAtE"};
     assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.mermaid.txt");
   }
 
@@ -56,9 +70,33 @@ public class MermaidUnifiedGeneratorTemplateTest extends TemplateTest
   }
 
   @Test
+  public void MermaidWriteFilesClassSuboption()
+  {
+    suboptions = new String[] {"class", "writefiles"};
+    assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.classonly.mermaid.txt");
+    Assert.assertTrue(new File(pathToInput + "/mermaid/StateBasic_classDiagram.mermaid").exists());
+  }
+
+  @Test
+  public void MermaidWriteFilesCombinedDefault()
+  {
+    suboptions = new String[] {"writefiles"};
+    assertUmpleTemplateFor("mermaid/StateBasic.ump", "mermaid/StateBasic.combined.mermaid.txt");
+    Assert.assertTrue(new File(pathToInput + "/mermaid/StateBasic_classDiagram.mermaid").exists());
+    Assert.assertTrue(new File(pathToInput + "/mermaid/StateBasic_stateDiagram.mermaid").exists());
+  }
+
+  @Test
   public void MermaidCombinedWithoutStateMachines()
   {
     suboptions = null;
-    assertUmpleTemplateFor("mermaid/AttributesAndMethods.ump", "mermaid/AttributesAndMethods.mermaid.txt");
+    assertUmpleTemplateFor("mermaid/NoStateMachines.ump", "mermaid/NoStateMachines.classonly.mermaid.txt");
+  }
+
+  @Test
+  public void MermaidStateSuboptionWithoutStateMachines()
+  {
+    suboptions = new String[] {"state"};
+    assertUmpleTemplateFor("mermaid/NoStateMachines.ump", "mermaid/NoStateMachines.stateonly.mermaid.txt");
   }
 }
