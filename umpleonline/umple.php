@@ -579,7 +579,7 @@ $output = $dataHandle->readData('model.ump');
     <option value="sd" id="menu-set-sd">State Diagram</option>  
     <option value="std" id="menu-set-std">Structure Diagram</option>  
     <option value="gfd" id="menu-set-gfd">Feature Diagram</option>
-    <option value="erd" id="menu-set-erd">ERD</option>
+    <option value="erd" id="buttonShowGvEntityRelationshipDiagram">ERD</option>
     <!--option value="gvFeature">Feature Diagram</option>
     <option value="crud">CRUD Matrix</option>
     <option value="stateTables">State Tables</option>

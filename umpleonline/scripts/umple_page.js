@@ -145,7 +145,9 @@ Page.init = function(doShowDiagram, doShowText, doShowMenu, doReadOnly, doShowLa
     Page.setDiagramTypeIconState('structureDiagram');
     Page.useGvFeatureDiagram = false;
   }
-  else if(diagramType.toLowerCase() == "entityrelationshipdiagram")
+  else if(diagramType.toLowerCase() == "gventityrelationshipdiagram"
+  || diagramType.toLowerCase() == "gventity"
+  || diagramType.toLowerCase() == "erd")
   {
     Page.useGvEntityRelationshipDiagram = true;
     Page.useStructureDiagram = false;
@@ -270,7 +272,7 @@ Page.initPaletteArea = function()
   Page.initHighlighter("buttonToggleGuardLabels");
   Page.initHighlighter("buttonToggleTraits");
   Page.initHighlighter("buttonToggleFeatureDependency");
-  Page.initHighlighter("buttonallowPinch");
+  Page.initHighlighter("buttonAllowPinch");
   Page.initHighlighter("buttonReindent");
   
   Page.initToggleTool("buttonAddClass");
@@ -583,15 +585,15 @@ Page.initCodeMirrorEditor = function() {
     { key: "Ctrl-E", run: function() { Page.clickShowEditableClassDiagram() } },
     { key: "Ctrl-J", run: function() { Page.clickShowJointJSClassDiagram() } },
     { key: "Ctrl-G", run: function() { Page.clickShowGvClassDiagram() } },
-    { key: "Ctrl-V", run: function() { Page.clickShowGvEntityRelationshipDiagram() } },
+    { key: "Ctrl-Shift-V", run: function() { Page.clickShowGvEntityRelationshipDiagram() } },
     { key: "Ctrl-S", run: function() { Page.clickShowGvStateDiagram() } },
     { key: "Ctrl-L", run: function() { Page.clickShowStructureDiagram() } },
     { key: "Ctrl-T", run: function() { Page.clickShowHideText() } },
     { key: "Shift-Ctrl-Alt-T", run: function() { Page.clickShowHideText() } },
     { key: "Ctrl-D", run: function() { Page.clickShowHideCanvas() } },
     { key: "Ctrl-N", run: function() { Page.clickShowHideMenu() } },
-    { key: "trl-Alt-N", run: function() { Page.clickShowHideMenu() } },
-    { key: "Ctrl-Shift-=", run: function() { Page.clickButtonlarger() } },
+    { key: "Ctrl-Alt-N", run: function() { Page.clickShowHideMenu() } },
+    { key: "Ctrl-Shift-=", run: function() { Page.clickButtonLarger() } },
     { key: "Ctrl-Shift--", run: function() { Page.clickButtonSmaller() } },
     { key: "Shift-Ctrl-A", run: function() { Page.clickToggleAttributes() } },
     { key: "Ctrl-M", run: function() { Page.clickToggleMethods() } },
@@ -760,7 +762,7 @@ Page.clickToggleFeatureDependency= function() {
 Page.clickToggleTransitionLabels = function() {
   jQuery('#buttonToggleTransitionLabels').trigger('click');
 }
-Page.clickToggleGuardLabels = function() {
+Page.clickToggleGuards = function() {
   jQuery('#buttonToggleGuards').trigger('click');
 }
 Page.clickToggleGuardLabels = function() {
@@ -930,8 +932,7 @@ Page.initExamples = function()
     jQuery("#itemLoadExamples5").hide();   
     jQuery("#itemLoadExamples6").hide();   
     jQuery("#itemLoadExamples7").hide();   
-    jQuery("#itemLoadExamples8").hide();
-    jQuery("#itemLoadExamplesERD").hide();   
+    jQuery("#itemLoadExamples8").hide();  
 
   }
   else if (Page.useGvStateDiagram) {
@@ -943,7 +944,6 @@ Page.initExamples = function()
     jQuery("#itemLoadExamples6").hide();   
     jQuery("#itemLoadExamples7").hide();   
     jQuery("#itemLoadExamples8").hide();
-    jQuery("#itemLoadExamplesERD").hide();   
 
   }
  else if (Page.useGvFeatureDiagram) {
@@ -955,20 +955,18 @@ Page.initExamples = function()
     jQuery("#itemLoadExamples6").hide();   
     jQuery("#itemLoadExamples7").hide();   
     jQuery("#itemLoadExamples8").hide();
-    jQuery("#itemLoadExamplesERD").hide();   
-
   }
 
   else if (Page.useGvEntityRelationshipDiagram) {
-    jQuery("#menu-set-erd").prop("selected",true);
-    jQuery("#itemLoadExamples").hide();
+    jQuery("#cdModels").prop("selected",true);
+    jQuery("#itemLoadExamples").show();
     jQuery("#itemLoadExamples2").hide();
     jQuery("#itemLoadExamples3").hide();
     jQuery("#itemLoadExamples5").hide();
     jQuery("#itemLoadExamples6").hide();   
     jQuery("#itemLoadExamples7").hide();   
     jQuery("#itemLoadExamples8").hide();
-    jQuery("#itemLoadExamplesERD").show();   
+
   }
   else {
     // TODO any examples loaded on initialization without a 
@@ -1500,8 +1498,9 @@ Page.getSelectedExample = function()
     {
        inputExample = jQuery("#inputExample4 option:selected").val(); 
        if( !Page.useGvEntityRelationshipDiagram) {
-         jQuery("#buttonShowGvEntityRelationshipDiagram").attr('checked', true); 
-         Action.changeDiagramType({type: "GvEntity"});
+         jQuery("#buttonShowGvEntityRelationshipDiagram").prop('checked', true); 
+         Action.changeDiagramType({type: "GvEntityRelationshipDiagram"});
+         
       }
     
     } 
@@ -1529,8 +1528,8 @@ Page.getSelectedExample = function()
 
 Page.getExampleType = function()
 {
-  var exampleType = jQuery("#exampleType option:selected").val();
-  return exampleType;
+  var inputExampleType = jQuery("#inputExampleType option:selected").val();
+  return inputExampleType;
 }
 
 Page.showCodeDone = function()
@@ -1645,7 +1644,7 @@ Page.applyGeneratedCodeAreaStyles = function(language)
     generatedArea.removeClass('generatedDiagram');
   }
   //One of the svg diagram types
-  else if(language == "stateDiagram" || language == "classDiagram" || language == "structureDiagram")
+  else if(language == "stateDiagram" || language == "classDiagram" || language == "structureDiagram" || language == "entityRelationshipDiagram")
   {
     generatedArea.removeClass('generatedCode');
     generatedArea.addClass('generatedDiagram');
@@ -1669,7 +1668,7 @@ Page.getErrorMarkup = function(code, language)
 {
   var output = "";
   
-  if(language == "classDiagram" || language == "stateDiagram")
+  if(language == "classDiagram" || language == "stateDiagram" || language == "GvEntityRelationshipDiagram")
   { // Covers Graphviz class and state diagrams
     output = code.split("<svg xmlns=")[0];
     output = output.replace(/&nbsp;\s*$/, "");
