@@ -4084,6 +4084,18 @@ Action.generateCode = function(languageStyle, languageName)
   {
     actualLanguage = languageName+"."+$("inputGenerateCode").value.split(":")[1];
   }
+  else if (languageName === "Mermaid")
+  {
+    // Keep Mermaid output aligned with the active diagram context in UmpleOnline.
+    if (Page.useGvStateDiagram)
+    {
+      actualLanguage = languageName + ".state";
+    }
+    else if (Page.useEditableClassDiagram || Page.useJointJSClassDiagram || Page.useGvClassDiagram)
+    {
+      actualLanguage = languageName + ".class";
+    }
+  }
   
   jQuery(generateCodeSelector).showLoading();
 
