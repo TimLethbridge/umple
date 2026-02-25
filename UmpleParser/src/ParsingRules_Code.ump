@@ -121,79 +121,42 @@ class ChoiceRule
   */
   public Position findPosition(int lookfor, ParserDataPackage data)
   {
+    // Create a position object that has the correct line number for the lookfor character
+    // This uses the ParsDataPackage that has a mapping from key (characters) to value (lines)
+    // The first character position and line number is always zero
+    // The second key will be the character minus 1 of the start of line 2
+    //  ... the minus 1 is due to zero-based indexing
+
     String input = data.getInput();
-    /*
-      In case of empty input.
-    */
-    if(input.isEmpty())
-    {
-      return new Position(
-          data.getFilename(),
-          1,
-          0,
-          lookfor
-          );
-    }
-    while(lookfor<input.length()-1&&(input.charAt(lookfor)+"").matches("\\s"))
-    {
+    while(lookfor<input.length()-1&&(input.charAt(lookfor)+"").matches("\\s")){
       ++lookfor;
     }
-    if(lookfor>=input.length())
-    {
+    if(lookfor>=input.length()){
       lookfor=input.length()-1;
     }
     Set<Integer> keys = data.getLinenumbers().keySet();
     int offset = 0;
     int linenumber = 0;
-    /*
-      Build a line start-end map.
-    */
-    Map<Integer,List<Integer>> lineMap = new HashMap<Integer,List<Integer>>();
-    int lastLineNum=0;
+    int previous = 0;
+
+    // Loop through all the character positions  (keys),
+    // setting linenumber if we go past it
     for(Integer key:keys)
     {
-      int currentLineNum=data.getLinenumbers().get(key);
-      if(lineMap.size()==0)
+      if(key-1>=lookfor)
       {
-        List<Integer> lineBound = new ArrayList<Integer>();
-        lineBound.add(key);
-        lineMap.put(currentLineNum,lineBound);
-        lastLineNum=currentLineNum;
-        continue;
-      }
-      lineMap.get(lastLineNum).add(key);
-      List<Integer> lineBound = new ArrayList<Integer>();
-      lineBound.add(key);
-      lineMap.put(currentLineNum,lineBound);
-      lastLineNum=currentLineNum;
-    }
-    /*
-      Set the last line bound.
-    */
-    if(lineMap.size()>0)
-    {
-      lineMap.get(lastLineNum).add(input.length());
-    }
-    for(Map.Entry<Integer,List<Integer>> lineData:lineMap.entrySet())
-    {
-      int lineStart = lineData.getValue().get(0);
-      int lineEnd = lineData.getValue().get(1);
-      if(lookfor>=lineStart&&lookfor<lineEnd)
-      {
-        offset = lookfor-lineStart;
-        linenumber = lineData.getKey()+1;
+        offset = lookfor-previous;
+        linenumber = data.getLinenumbers().get(key);
         break;
       }
+      previous = key;
     }
-    /*
-      Fallback:
-      The number should never be 0 in normal case.
-      In this case, follow the original fallback: set linenumber to 1.
-    */
+
     if(linenumber==0)
     {
-      linenumber=1;
-      offset=lookfor;
+      // Fix to issue #2279 ... used to set line number to 1
+      linenumber = data.getLinenumbers().get(previous)+1; // Set to last line
+      offset = lookfor-previous;
     }
     return new Position(
         data.getFilename(),
