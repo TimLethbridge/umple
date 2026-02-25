@@ -15,7 +15,7 @@ class MermaidGenerator
   depend cruise.umple.compiler.exceptions.*;
 
   UmpleModel model = null;
-  String outputPath = "";
+  String output = "";
 
   public void generate()
   {
@@ -302,7 +302,9 @@ class MermaidGenerator
   {
     try
     {
-      String path = model.getUmpleFile().getPath();
+      String path = StringFormatter.addPathOrAbsolute(
+          model.getUmpleFile().getPath(),
+          getOutput());
       File file = new File(path);
       file.mkdirs();
       String modelFilename = path + File.separator + model.getUmpleFile().getSimpleFileName() + suffix;
