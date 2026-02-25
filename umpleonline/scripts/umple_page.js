@@ -1587,7 +1587,7 @@ Page.showGeneratedCode = function(code,language,tabnumber)
 
   //Set the generated content
   if(language == "java" || language == "php" || language == "cpp" 
-    || language == "ruby" || language == "python" || language == "xml" || language == "sql" || language == "alloy" || language == "nusmv")
+    || language == "ruby" || language == "python" || language == "xml" || language == "sql" || language == "alloy" || language == "nusmv" || language == "mermaid")
   {
 		jQuery("#innerGeneratedCodeRow" + tabnumber).html(
 			formatOnce('<pre class="brush: {1};">{0}</pre>',generatedMarkup,language)
