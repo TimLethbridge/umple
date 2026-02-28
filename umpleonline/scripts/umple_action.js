@@ -17,7 +17,6 @@ Action.diagramInSync = true;
 Action.freshLoad = false;
 Action.gentime = new Date().getTime();
 Action.savedCanonical = "";
-Action.generatedOutputCanonical = "";
 Action.gdprHidden = false;
 Action.update = "";
 Action.neighbors=[];
@@ -37,32 +36,6 @@ let justUpdatetoSaveLaterForTextCallback = false;
 
 Action.setjustUpdatetoSaveLaterForTextCallback = function(state){
   justUpdatetoSaveLaterForTextCallback = state;
-}
-
-Action.getCanonicalUmpleCode = function()
-{
-  return Action.trimMultipleNonPrintingAndComments(Page.getUmpleCode());
-}
-
-Action.updateGeneratedOutputCanonical = function(generatedCanonical)
-{
-  if (typeof generatedCanonical === "string")
-  {
-    Action.generatedOutputCanonical = generatedCanonical;
-  }
-  else
-  {
-    Action.generatedOutputCanonical = Action.getCanonicalUmpleCode();
-  }
-}
-
-Action.isGeneratedOutputStale = function()
-{
-  if (!Action.generatedOutputCanonical)
-  {
-    return false;
-  }
-  return Action.getCanonicalUmpleCode() !== Action.generatedOutputCanonical;
 }
 
 Action.clicked = function(event)
@@ -4102,7 +4075,6 @@ Action.generateCode = function(languageStyle, languageName)
   var generateCodeSelector = "#buttonGenerateCode";
   var actualLanguage = languageName;
   var additionalCallback;
-  var canonicalAtGenerateRequest = Action.getCanonicalUmpleCode();
   if (Page.getAdvancedMode() == 0 && (languageName === "Cpp"))
   {
     actualLanguage = "Experimental-"+languageName;
@@ -4140,9 +4112,7 @@ Action.generateCode = function(languageStyle, languageName)
 
   Action.ajax(
     function(response) {
-      Action.generateCodeCallback(
-        response, languageStyle, additionalCallback, canonicalAtGenerateRequest
-      );
+      Action.generateCodeCallback(response, languageStyle, additionalCallback);
     },
     format("language={0}&languageStyle={1}", actualLanguage, languageStyle),
     "true"
@@ -4174,11 +4144,10 @@ Action.executeCodeCallback = function(response)
   window.location.href='#codeExecutionArea';
 }
 
-Action.generateCodeCallback = function(response, language, optionalCallback, generatedCanonical)
+Action.generateCodeCallback = function(response, language, optionalCallback)
 {
   Page.showGeneratedCode(response.responseText,language);
   Page.hideExecutionArea();
-  Action.updateGeneratedOutputCanonical(generatedCanonical);
   Action.gentime = new Date().getTime();
 
   if(optionalCallback !== undefined)
@@ -5650,9 +5619,7 @@ Action.updateUmpleDiagramCallback = function(response)
     }
 
     Page.setFeedbackMessage("");
-    if (Action.isGeneratedOutputStale()) {
-      Page.hideGeneratedCode();
-    }
+    Page.hideGeneratedCode();
 
     // Enable dynamic checkboxes of mixsets and named filters
     // Find any phrases describing
